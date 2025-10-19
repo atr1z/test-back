@@ -76,7 +76,7 @@ describe('JWTService', () => {
 
             // Create token that expires immediately
             const token = jwtService.generateToken(payload, { expiresIn: -1 });
-            
+
             expect(() => jwtService.verifyToken(token)).toThrow('Token has expired');
         });
 
@@ -115,4 +115,3 @@ describe('JWTService', () => {
         });
     });
 });
-

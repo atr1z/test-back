@@ -10,4 +10,3 @@ describe('PShop API', () => {
         expect(appName).toBeDefined();
     });
 });
-

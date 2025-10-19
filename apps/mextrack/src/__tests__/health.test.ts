@@ -10,4 +10,3 @@ describe('Mextrack API', () => {
         expect(appName).toBeDefined();
     });
 });
-

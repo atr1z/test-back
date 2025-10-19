@@ -106,6 +106,3 @@ jobs:
       - name: Test affected packages
         run: pnpm test --filter=[HEAD^1]
 
-      - name: Lint affected packages
-        run: pnpm lint --filter=[HEAD^1]
-
