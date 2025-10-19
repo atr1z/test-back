@@ -43,10 +43,9 @@ pnpm format                 # Format code
 pnpm format:check           # Check formatting
 pnpm type-check             # TypeScript check
 
-# Versioning & Releases
+# Versioning (Internal)
 pnpm changeset              # Create a new changeset for version bump
 pnpm version-packages       # Update package versions (automated via CI)
-pnpm release                # Publish packages (automated via CI)
 
 # Maintenance
 pnpm clean                  # Clean all dist folders
@@ -583,7 +582,9 @@ describe('Auth API', () => {
 
 ### How Versioning Works
 
-This project uses **Changesets** for automated versioning and changelog generation. When you make changes to framework packages (`@atriz/core`, `@atriz/auth`), you need to create a changeset.
+This project uses **Changesets** for automated version tracking and changelog generation **for internal use only**. Packages are NOT published to npm - versions are tracked in `package.json` and `CHANGELOG.md` files within the repository.
+
+When you make changes to framework packages (`@atriz/core`, `@atriz/auth`), you need to create a changeset.
 
 ### Creating a Changeset
 
@@ -628,7 +629,7 @@ git push
 # - Creates "Version Packages" PR automatically
 # - Updates versions in package.json
 # - Updates CHANGELOG.md files
-# - When you merge the Version PR, packages are published (if configured)
+# - When you merge the Version PR, versions are tracked in git
 ```
 
 ### What Gets Versioned
@@ -648,7 +649,7 @@ The `.github/workflows/release.yml` workflow:
 1. Runs on every push to `main`
 2. Checks for changesets
 3. Creates/updates a "Version Packages" PR
-4. When merged, publishes to npm (if NPM_TOKEN is set)
+4. When merged, versions are updated in git history
 
 ### Best Practices
 
@@ -663,7 +664,6 @@ The `.github/workflows/release.yml` workflow:
 pnpm changeset              # Create new changeset
 pnpm changeset status       # Check current status
 pnpm version-packages       # Update versions (CI does this)
-pnpm release               # Build & publish (CI does this)
 ```
 
 ### Troubleshooting Versioning

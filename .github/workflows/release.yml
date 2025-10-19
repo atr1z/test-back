@@ -1,4 +1,4 @@
-name: Release
+name: Version Management
 
 on:
   push:
@@ -8,8 +8,8 @@ on:
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
-  release:
-    name: Release
+  version:
+    name: Version Packages
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -34,21 +34,13 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build Packages
-        run: pnpm build
-
-      - name: Create Release Pull Request or Publish to npm
+      - name: Create Version Pull Request
         id: changesets
         uses: changesets/action@v1
         with:
-          # This expects you to have a script called version-packages which runs `changeset version`
           version: pnpm version-packages
-          # This expects you to have a script called release which runs `pnpm build && changeset publish`
-          publish: pnpm release
           title: "chore: version packages"
           commit: "chore: version packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # If you want to publish to npm, add NPM_TOKEN secret
-          # NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 

@@ -4,8 +4,9 @@
   "commit": false,
   "fixed": [],
   "linked": [],
-  "access": "public",
+  "access": "restricted",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["@atriz/website", "@atriz/mextrack-api", "@atriz/pshop-api"]
+  "ignore": ["@atriz/website", "@atriz/mextrack-api", "@atriz/pshop-api"],
+  "privatePackages": false
 }

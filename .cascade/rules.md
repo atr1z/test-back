@@ -365,7 +365,7 @@ Example: feat(mextrack): add vehicle tracking endpoint
 ## Versioning & Release Process
 
 ### Overview
-This project uses **Changesets** for automated version management and releases.
+This project uses **Changesets** for automated version management **for internal use only**. Versions are tracked in `package.json` and `CHANGELOG.md` files - packages are NOT published to npm.
 
 ### When to Create a Changeset
 
@@ -411,12 +411,12 @@ git push
 # 4. Create PR and get it merged to main
 # ... review and merge ...
 
-# 5. Automated Release Workflow:
+# 5. Automated Versioning Workflow:
 # - GitHub Action creates "Version Packages" PR
 # - PR updates package.json versions
 # - PR updates CHANGELOG.md files
 # - Merge the "Version Packages" PR
-# - Packages are automatically published (if NPM_TOKEN configured)
+# - Versions are tracked in git history
 ```
 
 ### Semantic Versioning Rules
@@ -453,9 +453,6 @@ pnpm changeset status
 
 # Version packages (done by CI)
 pnpm version-packages
-
-# Publish packages (done by CI)
-pnpm release
 ```
 
 ## CI/CD
@@ -481,7 +478,7 @@ We use a **smart monorepo CI/CD strategy** that leverages Turbo:
 - ✅ Automated versioning with Changesets
 - ✅ Automatic changelog generation
 
-### Release Workflow
+### Version Management Workflow
 
 The `release.yml` workflow runs on every push to `main`:
 
@@ -491,16 +488,10 @@ The `release.yml` workflow runs on every push to `main`:
    - Updated CHANGELOG.md files
    - Dependency version bumps
 3. **On merge of Version PR**:
-   - Builds all packages
-   - Publishes to npm (if NPM_TOKEN is configured)
-   - Creates GitHub releases
+   - Versions are committed to git
+   - Version history is tracked in CHANGELOG.md
 
-**Setup for npm Publishing** (optional):
-1. Create npm token: https://www.npmjs.com/settings/tokens
-2. Add `NPM_TOKEN` to GitHub secrets
-3. Update package access in changesets config if needed
-
-See [.github/workflows/README.md](../.github/workflows/README.md) for details.
+**Note**: This is for internal version tracking only. Packages are NOT published to npm.
 
 ### Pre-deployment Checklist
 - [ ] All CI checks pass

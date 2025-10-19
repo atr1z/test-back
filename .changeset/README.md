@@ -1,10 +1,12 @@
 # Changesets
 
-This directory contains changesets for the Atriz monorepo. Changesets are used to manage versioning and changelogs.
+This directory contains changesets for the Atriz monorepo. Changesets are used to **automatically manage version numbers and changelogs** for your internal packages.
+
+**Note**: This setup is for **internal version tracking only** - packages are NOT published to npm. Versions are tracked in `package.json` and `CHANGELOG.md` files.
 
 ## Creating a Changeset
 
-When you make changes that should trigger a version bump, run:
+When you make changes to framework packages that should trigger a version bump, run:
 
 ```bash
 pnpm changeset
@@ -65,8 +67,9 @@ git push
 ### 3. Automatic versioning on merge
 When your PR is merged to `main`, the GitHub Actions workflow will:
 - Automatically create a "Version Packages" PR
-- This PR will update versions and CHANGELOGs
-- When merged, packages will be published (if NPM_TOKEN is configured)
+- This PR will update versions in `package.json`
+- This PR will update `CHANGELOG.md` files
+- When merged, versions are tracked in git history
 
 ## Examples
 
@@ -137,9 +140,6 @@ pnpm changeset status
 
 # Version packages (usually done by CI)
 pnpm version-packages
-
-# Publish packages (usually done by CI)
-pnpm release
 ```
 
 ## Best Practices
