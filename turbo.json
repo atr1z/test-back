@@ -10,10 +10,15 @@
       "cache": false,
       "persistent": true
     },
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
+    "format": {
+      "cache": false
+    },
     "test": {
       "dependsOn": ["^build"],
-      "outputs": ["coverage/**"],
-      "cache": true
+      "outputs": ["coverage/**"]
     },
     "test:watch": {
       "cache": false,
@@ -23,15 +28,9 @@
       "dependsOn": ["^build"],
       "outputs": ["coverage/**"]
     },
-    "lint": {
-      "outputs": []
-    },
-    "type-check": {
-      "dependsOn": ["^build"],
-      "outputs": []
-    },
     "clean": {
       "cache": false
     }
   }
 }
+

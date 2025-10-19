@@ -1,4 +1,4 @@
-# Mextrack Backends - Project Context
+# Atriz Framework - Project Context
 
 ## Quick Reference
 
@@ -7,102 +7,130 @@
 # Install dependencies
 pnpm install
 
-# Setup database
-createdb mextrack_dev
-pnpm db:migrate
-pnpm db:seed
+# Build framework packages
+pnpm build
 
-# Start all services
+# Start development
 pnpm dev
-
-# Start specific service
-pnpm dev:mextrack  # Port 3001
-pnpm dev:pshop     # Port 3002
 ```
 
 ### Common Commands
 ```bash
 # Development
-pnpm dev                    # Start all services
-pnpm dev:mextrack          # Start mextrack only
-pnpm dev:pshop             # Start pshop only
+pnpm dev                    # Start all apps in watch mode
+pnpm dev:atriz              # Start Atriz example app only (port 3000)
+pnpm dev:mextrack           # Start Mextrack API only (port 3001)
+pnpm dev:pshop              # Start PShop API only (port 3002)
 
 # Building
-pnpm build                 # Build all
-pnpm build:mextrack        # Build mextrack
-pnpm build:pshop           # Build pshop
+pnpm build                  # Build all packages and apps
+pnpm build:atriz            # Build Atriz app only
+pnpm build:mextrack         # Build Mextrack only
+pnpm build:pshop            # Build PShop only
 
 # Testing
-pnpm test                  # Run all tests
-pnpm test:watch            # Watch mode
-pnpm test:coverage         # With coverage
-pnpm test:mextrack         # Test mextrack only
-
-# Database
-pnpm db:migrate            # Run migrations
-pnpm db:migrate:create     # Create new migration
-pnpm db:seed               # Seed dev data
-pnpm db:seed:prod          # Seed prod data
-pnpm db:rollback           # Rollback last
-pnpm db:reset              # Reset database (dev only)
+pnpm test                   # Run all tests
+pnpm test:atriz             # Test Atriz only
+pnpm test:mextrack          # Test Mextrack only
+pnpm test:pshop             # Test PShop only
+pnpm test:watch             # Watch mode
+pnpm test:coverage          # With coverage
 
 # Code Quality
-pnpm lint                  # Lint all
-pnpm lint:fix              # Fix linting issues
-pnpm format                # Format code
-pnpm format:check          # Check formatting
-pnpm type-check            # TypeScript check
+pnpm lint                   # Lint all
+pnpm lint:fix               # Fix linting issues
+pnpm format                 # Format code
+pnpm format:check           # Check formatting
+pnpm type-check             # TypeScript check
 
 # Maintenance
-pnpm clean                 # Clean all
-pnpm clean:cache           # Clear Turbo cache
+pnpm clean                  # Clean all dist folders
+pnpm clean:cache            # Clear Turbo cache
 ```
 
-## Package Dependencies
+## Framework Packages
 
-### Shared Packages
-- **@mextrack/auth**: Authentication with Lucia
-- **@mextrack/database**: PostgreSQL client and migrations
-- **@mextrack/types**: TypeScript type definitions
-- **@mextrack/utils**: Utilities (validation, errors, logging, responses)
+### @atriz/core (The Main Framework)
+- **BaseController**: Abstract controller with validation and response helpers
+- **Dependency Injection**: TSyringe-based DI container
+- **ParamValidator**: Built-in parameter validation system
+- **AtrizApp**: Express application wrapper
+- **Middleware**: Async handler, logger, error handling
+- **Testing Utilities**: Mock request/response, controller test helpers
+- **Type System**: Complete TypeScript type definitions
+
+### @atriz/auth (Authentication Module)
+- **JWTService**: Token generation and verification
+- **PasswordService**: Password hashing with bcrypt
+- **Auth Middleware**: Factory for creating auth middleware
+- **DI Tokens**: Injection tokens for services
 
 ### External Dependencies
-- **lucia**: Authentication library
-- **postgres**: PostgreSQL client
-- **express**: Web framework
-- **zod**: Schema validation
-- **winston**: Logging
-- **argon2**: Password hashing
-- **nanoid**: ID generation
+- **express**: Web framework (v4.18+)
+- **tsyringe**: Dependency injection (v4.8+)
+- **reflect-metadata**: Required for DI
+- **jsonwebtoken**: JWT implementation
+- **bcryptjs**: Password hashing
+- **helmet**: Security middleware
+- **cors**: CORS middleware
+- **compression**: Response compression
 - **vitest**: Testing framework
 
 ## File Structure Patterns
 
-### Service Structure
+### Framework Package Structure
 ```
-apps/{service}/
+packages/core/
 ├── src/
-│   ├── controllers/     # HTTP handlers
-│   ├── services/        # Business logic
-│   ├── routes/          # API routes
-│   ├── middleware/      # Request middleware
-│   └── index.ts         # Entry point
-├── tests/
-│   ├── unit/           # Unit tests
-│   └── integration/    # Integration tests
+│   ├── index.ts              # Main exports
+│   ├── app.ts                # AtrizApp class
+│   ├── controller/
+│   │   ├── BaseController.ts # Base controller class
+│   │   └── index.ts
+│   ├── di/
+│   │   ├── container.ts      # DI container helpers
+│   │   ├── tokens.ts         # Injection tokens
+│   │   └── index.ts
+│   ├── middleware/
+│   │   ├── asyncHandler.ts   # Async error handling
+│   │   ├── logger.ts         # Request logging
+│   │   └── index.ts
+│   ├── validators/
+│   │   ├── paramValidator.ts # Parameter validation
+│   │   ├── common.ts         # Common validators
+│   │   └── index.ts
+│   ├── testing/
+│   │   ├── mockRequest.ts    # Mock Express request
+│   │   ├── mockResponse.ts   # Mock Express response
+│   │   └── index.ts
+│   ├── types/
+│   │   ├── controller.ts     # Controller types
+│   │   ├── validation.ts     # Validation types
+│   │   └── index.ts
+│   └── utils/
+│       └── env.ts            # Environment utilities
 ├── package.json
 ├── tsconfig.json
-└── .env.example
+└── vitest.config.ts
 ```
 
-### Shared Package Structure
+### Application Structure
 ```
-packages/{package}/
+apps/{app}/
 ├── src/
-│   ├── index.ts        # Main export
-│   └── *.ts            # Implementation files
-├── tests/
-│   └── *.test.ts       # Test files
+│   ├── index.ts              # Entry point, app setup
+│   ├── controllers/          # Business controllers
+│   │   ├── AuthController.ts
+│   │   └── __tests__/
+│   ├── routes/               # Route definitions
+│   │   ├── auth.routes.ts
+│   │   └── index.ts
+│   ├── services/             # Business logic (optional)
+│   │   └── UserService.ts
+│   └── di/                   # DI setup
+│       ├── container.ts      # Register services
+│       └── tokens.ts         # App-specific tokens
+├── env.example
 ├── package.json
 ├── tsconfig.json
 └── vitest.config.ts
@@ -113,193 +141,432 @@ packages/{package}/
 ### Controller Template
 ```typescript
 import { Response } from 'express';
-import { AuthRequest } from '@mextrack/auth';
-import { successResponse, errorResponse } from '@mextrack/utils';
-import { z } from 'zod';
-import * as service from '../services/myservice.service';
+import { BaseController, ControllerRequest, ParamDefinition } from '@atriz/core';
 
-const schema = z.object({
-  field: z.string(),
-});
+interface MyServices {
+  userService: UserService;
+  emailService: EmailService;
+}
 
-export async function handler(req: AuthRequest, res: Response) {
-  try {
-    if (!req.user) {
-      return errorResponse(res, 'Unauthorized', 401);
-    }
+/**
+ * Example controller extending BaseController
+ */
+export class CreateUserController extends BaseController<MyServices> {
+  constructor(req: ControllerRequest, res: Response, services: MyServices) {
+    super(req, res, services);
+    this.requiresAuth = false; // Set to true if auth is required
+  }
 
-    const data = schema.parse(req.body);
-    const result = await service.doSomething(req.user.id, data);
+  /**
+   * Define and validate parameters
+   */
+  protected defineParams(): ParamDefinition[] {
+    return [
+      {
+        name: 'email',
+        type: 'email',
+        required: true,
+        errorMessage: 'Valid email is required',
+      },
+      {
+        name: 'password',
+        type: 'password',
+        required: true,
+      },
+      {
+        name: 'name',
+        type: 'string',
+        required: true,
+        min: 2,
+        max: 100,
+      },
+      {
+        name: 'age',
+        type: 'number',
+        required: false,
+        min: 18,
+        max: 120,
+      },
+    ];
+  }
 
-    return successResponse(res, result);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return errorResponse(res, 'Validation error', 400, error.errors);
-    }
-    return errorResponse(res, 'Operation failed', 500);
+  /**
+   * Main business logic
+   */
+  protected async execute(): Promise<any> {
+    // Get validated parameters
+    const email = this.getParam<string>('email');
+    const password = this.getParam<string>('password');
+    const name = this.getParam<string>('name');
+    const age = this.getParam<number>('age', 25); // with default
+
+    // Use injected services
+    const user = await this.services!.userService.createUser({
+      email,
+      password,
+      name,
+      age,
+    });
+
+    // Send welcome email
+    await this.services!.emailService.sendWelcome(user.email);
+
+    // Return data (automatically wrapped in success response)
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      },
+    };
   }
 }
 ```
 
-### Service Template
+### Service Template (Injectable)
 ```typescript
-import { sql } from '@mextrack/database';
-import { nanoid } from 'nanoid';
+import { injectable } from 'tsyringe';
 
-export async function getData(userId: string) {
-  return await sql`
-    SELECT * FROM table 
-    WHERE user_id = ${userId}
-    ORDER BY created_at DESC
-  `;
-}
+/**
+ * Example service class with dependency injection
+ * Make it injectable with @injectable() decorator
+ */
+@injectable()
+export class UserService {
+  constructor(
+    // Inject other services if needed
+    // private emailService: EmailService
+  ) {}
 
-export async function createData(userId: string, data: any) {
-  const id = nanoid(15);
-  
-  const result = await sql`
-    INSERT INTO table (id, user_id, field)
-    VALUES (${id}, ${userId}, ${data.field})
-    RETURNING *
-  `;
-  
-  return result[0];
+  async getUserById(userId: string) {
+    // Your data access logic here
+    // Could use Prisma, TypeORM, raw SQL, etc.
+    return {
+      id: userId,
+      email: 'user@example.com',
+      name: 'John Doe',
+    };
+  }
+
+  async createUser(data: CreateUserDto) {
+    // Hash password, save to DB, etc.
+    const id = crypto.randomUUID();
+    
+    return {
+      id,
+      email: data.email,
+      name: data.name,
+      createdAt: new Date(),
+    };
+  }
+
+  async updateUser(userId: string, data: UpdateUserDto) {
+    // Update logic
+    return { success: true };
+  }
+
+  async deleteUser(userId: string) {
+    // Delete logic
+    return { success: true };
+  }
 }
 ```
 
 ### Route Template
 ```typescript
 import { Router } from 'express';
-import * as controller from '../controllers/my.controller';
-import { authMiddleware } from '@mextrack/auth';
+import { resolve } from '@atriz/core';
+import { CreateUserController, GetUserController } from '../controllers';
+import { UserService } from '../services/UserService';
+import { APP_TOKENS } from '../di/tokens';
 
-const router = Router();
+export default (): Router => {
+  const router = Router();
 
-router.use(authMiddleware);
+  // Resolve services from DI container
+  const userService = resolve<UserService>(APP_TOKENS.UserService);
+  const services = { userService };
 
-router.get('/', controller.getAll);
-router.get('/:id', controller.getOne);
-router.post('/', controller.create);
-router.put('/:id', controller.update);
-router.delete('/:id', controller.remove);
+  /**
+   * POST /api/users
+   * Create a new user
+   */
+  router.post('/', (req, res) => {
+    const controller = new CreateUserController(req, res, services);
+    return controller.handle();
+  });
 
-export default router;
+  /**
+   * GET /api/users/:id
+   * Get user by ID
+   */
+  router.get('/:id', (req, res) => {
+    const controller = new GetUserController(req, res, services);
+    return controller.handle();
+  });
+
+  return router;
+};
 ```
 
-## Database Patterns
-
-### Query Examples
+### Application Entry Point Template
 ```typescript
-// Select
-const users = await sql`SELECT * FROM users WHERE id = ${userId}`;
-const user = users[0];
+import 'reflect-metadata'; // Required for DI
+import { AtrizApp, registerSingleton } from '@atriz/core';
+import { JWTService, PasswordService, AUTH_TOKENS } from '@atriz/auth';
+import { UserService } from './services/UserService';
+import { APP_TOKENS } from './di/tokens';
+import authRoutes from './routes/auth.routes';
+import userRoutes from './routes/user.routes';
 
-// Insert
-const [newUser] = await sql`
-  INSERT INTO users (id, email, name)
-  VALUES (${id}, ${email}, ${name})
-  RETURNING *
-`;
+// Initialize services and register in DI container
+const jwtService = new JWTService(process.env.JWT_SECRET!);
+registerSingleton(AUTH_TOKENS.JWTService, JWTService);
+registerSingleton(AUTH_TOKENS.PasswordService, PasswordService);
+registerSingleton(APP_TOKENS.UserService, UserService);
 
-// Update
-const [updated] = await sql`
-  UPDATE users 
-  SET name = ${name}
-  WHERE id = ${userId}
-  RETURNING *
-`;
-
-// Delete
-await sql`DELETE FROM users WHERE id = ${userId}`;
-
-// Transaction
-await sql.begin(async (sql) => {
-  await sql`INSERT INTO table1 ...`;
-  await sql`INSERT INTO table2 ...`;
+// Create and configure app
+const app = new AtrizApp({
+  port: Number(process.env.PORT) || 3000,
+  env: process.env.NODE_ENV || 'development',
+  cors: {
+    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    credentials: true,
+  },
 });
 
-// Dynamic updates
-const updates = { name: 'John', email: 'john@example.com' };
-await sql`
-  UPDATE users 
-  SET ${sql(updates)}
-  WHERE id = ${userId}
-`;
+// Register routes
+app.app.use('/api/auth', authRoutes());
+app.app.use('/api/users', userRoutes());
+
+// Health check
+app.app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Start server
+app.listen(() => {
+  console.log('✅ Application started successfully');
+});
 ```
 
-### Common Indexes
-```sql
--- Foreign keys
-CREATE INDEX idx_table_user_id ON table(user_id);
+## Validation Patterns
 
--- Timestamps for sorting
-CREATE INDEX idx_table_created_at ON table(created_at DESC);
+### Parameter Definition Examples
+```typescript
+protected defineParams(): ParamDefinition[] {
+  return [
+    // Email validation
+    { name: 'email', type: 'email', required: true },
+    
+    // Password with min length
+    { name: 'password', type: 'password', required: true },
+    
+    // String with length constraints
+    { name: 'name', type: 'string', required: true, min: 2, max: 100 },
+    
+    // Optional number with range
+    { name: 'age', type: 'number', required: false, min: 18, max: 120 },
+    
+    // Phone number
+    { name: 'phone', type: 'phone', required: false },
+    
+    // URL validation
+    { name: 'website', type: 'url', required: false },
+    
+    // UUID
+    { name: 'userId', type: 'uuid', required: true },
+    
+    // Boolean
+    { name: 'isActive', type: 'boolean', required: false },
+    
+    // Date
+    { name: 'birthDate', type: 'date', required: false },
+    
+    // Custom pattern
+    {
+      name: 'username',
+      type: 'string',
+      required: true,
+      pattern: /^[a-zA-Z0-9_]{3,20}$/,
+      errorMessage: 'Username must be 3-20 alphanumeric characters',
+    },
+    
+    // Custom validation function
+    {
+      name: 'promoCode',
+      type: 'string',
+      required: false,
+      custom: async (value: string) => {
+        // Check if promo code exists in DB
+        const isValid = await checkPromoCode(value);
+        return isValid;
+      },
+      errorMessage: 'Invalid promo code',
+    },
+    
+    // Object type
+    { name: 'metadata', type: 'object', required: false },
+    
+    // Array type
+    { name: 'tags', type: 'array', required: false },
+  ];
+}
+```
 
--- Composite for common queries
-CREATE INDEX idx_table_user_date ON table(user_id, created_at DESC);
-
--- Unique constraints
-CREATE UNIQUE INDEX idx_users_email ON users(email);
-
--- Conditional indexes
-CREATE INDEX idx_active_users ON users(id) WHERE active = true;
+### Custom Error Responses
+```typescript
+protected async execute(): Promise<any> {
+  const userId = this.getUrlParam('id');
+  
+  // Check if resource exists
+  const user = await this.services!.userService.findById(userId);
+  if (!user) {
+    return this.notFound('User not found');
+  }
+  
+  // Check permissions
+  if (user.id !== this.userId) {
+    return this.forbidden('You do not have permission to access this resource');
+  }
+  
+  // Check for conflicts
+  const existingEmail = await this.services!.userService.findByEmail(email);
+  if (existingEmail) {
+    return this.conflict('Email already in use');
+  }
+  
+  // Success with custom message
+  return this.created(user, 'User created successfully');
+}
 ```
 
 ## Testing Patterns
 
-### Unit Test Template
+### Controller Unit Test
 ```typescript
-import { describe, it, expect } from 'vitest';
-import { myFunction } from '../src/mymodule';
+import { describe, it, expect, vi } from 'vitest';
+import { mockRequest, mockResponse } from '@atriz/core/testing';
+import { CreateUserController } from '../CreateUserController';
 
-describe('MyModule', () => {
-  describe('myFunction', () => {
-    it('should return expected result', () => {
-      const result = myFunction('input');
-      expect(result).toBe('expected');
-    });
+describe('CreateUserController', () => {
+  it('should create user successfully', async () => {
+    // Mock services
+    const mockUserService = {
+      createUser: vi.fn().mockResolvedValue({
+        id: '123',
+        email: 'test@example.com',
+        name: 'Test User',
+      }),
+    };
 
-    it('should handle edge case', () => {
-      const result = myFunction('');
-      expect(result).toBe('default');
+    const services = { userService: mockUserService };
+    
+    // Create mock request/response
+    const req = mockRequest({
+      body: {
+        email: 'test@example.com',
+        password: 'Test123!@#',
+        name: 'Test User',
+      },
     });
+    const res = mockResponse();
 
-    it('should throw on invalid input', () => {
-      expect(() => myFunction(null)).toThrow();
+    // Execute controller
+    const controller = new CreateUserController(req, res, services);
+    await controller.handle();
+
+    // Assertions
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: true,
+        data: expect.objectContaining({
+          user: expect.objectContaining({
+            email: 'test@example.com',
+          }),
+        }),
+      })
+    );
+  });
+
+  it('should return validation error for invalid email', async () => {
+    const req = mockRequest({
+      body: {
+        email: 'invalid-email',
+        password: 'Test123!@#',
+        name: 'Test User',
+      },
     });
+    const res = mockResponse();
+
+    const controller = new CreateUserController(req, res, {});
+    await controller.handle();
+
+    expect(res.status).toHaveBeenCalledWith(422);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: false,
+        message: 'Validation failed',
+      })
+    );
   });
 });
 ```
 
-### Integration Test Template
+### Service Unit Test
 ```typescript
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect } from 'vitest';
+import { UserService } from '../UserService';
+
+describe('UserService', () => {
+  const userService = new UserService();
+
+  it('should create a user', async () => {
+    const userData = {
+      email: 'test@example.com',
+      password: 'Test123!@#',
+      name: 'Test User',
+    };
+
+    const user = await userService.createUser(userData);
+
+    expect(user).toHaveProperty('id');
+    expect(user.email).toBe(userData.email);
+    expect(user.name).toBe(userData.name);
+  });
+});
+```
+
+### Integration Test (API)
+```typescript
+import { describe, it, expect, beforeAll } from 'vitest';
 import request from 'supertest';
 import { app } from '../src/index';
-import { sql } from '@mextrack/database';
 
-describe('API Endpoints', () => {
-  let authCookie: string;
+describe('Auth API', () => {
+  let authToken: string;
 
-  beforeAll(async () => {
-    // Setup test data
-    const response = await request(app)
-      .post('/api/auth/login')
-      .send({ email: 'test@test.com', password: 'test123456' });
+  it('should register a new user', async () => {
+    const response = await request(app.app)
+      .post('/api/auth/register')
+      .send({
+        email: 'test@example.com',
+        password: 'Test123!@#',
+        name: 'Test User',
+      });
+
+    expect(response.status).toBe(201);
+    expect(response.body.success).toBe(true);
+    expect(response.body.data).toHaveProperty('token');
     
-    authCookie = response.headers['set-cookie'][0];
+    authToken = response.body.data.token;
   });
 
-  afterAll(async () => {
-    // Cleanup
-    await sql`DELETE FROM sessions`;
-    await sql.end();
-  });
-
-  it('should get data', async () => {
-    const response = await request(app)
-      .get('/api/resource')
-      .set('Cookie', authCookie);
+  it('should access protected route with token', async () => {
+    const response = await request(app.app)
+      .get('/api/users/me')
+      .set('Authorization', `Bearer ${authToken}`);
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
@@ -309,113 +576,170 @@ describe('API Endpoints', () => {
 
 ## Troubleshooting Guide
 
-### Cannot find module '@mextrack/...'
+### Cannot find module '@atriz/core' or '@atriz/auth'
 1. Run `pnpm install` from root
-2. Check package.json dependencies use `workspace:*`
-3. Rebuild: `pnpm build`
+2. Build framework packages: `pnpm build`
+3. Check package.json dependencies use `workspace:*`
+4. Clear Turbo cache: `turbo daemon clean`
 
-### Database connection errors
-1. Verify DATABASE_URL in .env
-2. Check PostgreSQL is running
-3. Test connection: `psql $DATABASE_URL`
-
-### Migration fails
-1. Check migration SQL syntax
-2. Verify dependencies (foreign keys)
-3. Check if migration already ran
-4. Review logs for specific error
+### DI Container Errors ("Cannot resolve...")
+1. Ensure `import 'reflect-metadata'` at app entry point
+2. Register services before resolving them
+3. Check injection tokens match between register and resolve
+4. Use `registerSingleton()` for services you want to reuse
 
 ### Type errors in IDE
 1. Run `pnpm type-check` to see all errors
 2. Rebuild packages: `pnpm build`
 3. Restart TypeScript server in IDE
+4. Check that framework packages are built first
+
+### Controller validation not working
+1. Verify `defineParams()` returns correct array
+2. Check param names match request body
+3. Ensure `required` field is set correctly
+4. Test with simple validation first
+
+### Authentication middleware fails
+1. Check JWT_SECRET is set in environment
+2. Verify token format: `Bearer <token>`
+3. Check token expiration
+4. Ensure JWTService is registered in DI container
 
 ### Tests failing
-1. Check if test database is set up
-2. Verify .env.test configuration
-3. Run migrations on test DB
-4. Check for leftover test data
+1. Import `reflect-metadata` in test setup
+2. Mock services properly in controller tests
+3. Use `mockRequest` and `mockResponse` from `@atriz/core/testing`
+4. Clear DI container between tests if needed
+
+### Build errors
+1. Build packages in order: `pnpm build`
+2. Clean dist folders: `pnpm clean`
+3. Check for circular dependencies
+4. Verify TypeScript configuration
 
 ### Port already in use
-1. Kill process: `lsof -ti:3001 | xargs kill -9`
+1. Kill process: `lsof -ti:3000 | xargs kill -9`
 2. Change PORT in .env
 3. Check for zombie processes
 
 ## Performance Tips
 
-### Database
-- Use indexes on frequently queried columns
-- Limit result sets with LIMIT
-- Use transactions for multiple operations
-- Consider connection pooling for high traffic
+### Framework Usage
+- **DI Container**: Use `registerSingleton()` for services to reuse instances
+- **Validation**: ParamValidator has built-in SQL injection prevention
+- **Response Caching**: Implement at application level for frequently accessed data
+- **Lazy Loading**: Only resolve services when needed
 
-### API
-- Validate input early
-- Use pagination for large datasets
-- Cache frequently accessed data
-- Implement rate limiting
+### API Development
+- Validate input early (handled automatically by BaseController)
+- Use pagination for large datasets (implement in services)
+- Implement rate limiting (add to application middleware)
+- Compress responses (enabled by default in AtrizApp)
 
-### Development
+### Build & Development
 - Use Turbo cache for faster builds
-- Run only affected tests during development
-- Use `watch` mode for rapid iteration
+- Run only affected tests: `turbo test --filter=changed`
+- Use watch mode: `pnpm dev`
+- Build framework packages once, reuse across apps
+
+### Controller Best Practices
+- Keep controllers thin, move logic to services
+- Reuse validation patterns
+- Use dependency injection for testability
+- Return early for error conditions
 
 ## Security Checklist
 
-- [ ] All secrets in environment variables
-- [ ] Input validation on all endpoints
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] XSS prevention (sanitize output)
-- [ ] CSRF protection (SameSite cookies)
-- [ ] Rate limiting on auth endpoints
+- [ ] All secrets in environment variables (JWT_SECRET, etc.)
+- [ ] Input validation on all endpoints (via defineParams())
+- [ ] SQL injection prevention (built-in with ParamValidator)
+- [ ] XSS prevention (sanitize output in services)
+- [ ] Helmet enabled (default in AtrizApp)
+- [ ] CORS configured properly
+- [ ] Rate limiting on auth endpoints (implement in app)
 - [ ] HTTPS in production
-- [ ] Secure session cookies
-- [ ] Password hashing with Argon2
+- [ ] JWT tokens with reasonable expiration
+- [ ] Password hashing with bcrypt (PasswordService)
 - [ ] Regular dependency updates
+- [ ] Strong JWT secrets (long random strings)
+- [ ] Validate file uploads (if using file uploads)
+- [ ] No sensitive data in logs
 
-## Useful SQL Queries
+## Framework Development Tips
 
-### Check migrations status
-```sql
-SELECT * FROM migrations ORDER BY executed_at DESC;
+### Adding New Validation Types
+```typescript
+// In packages/core/src/validators/paramValidator.ts
+// Add new case to validateType method
+case 'customType':
+  return {
+    valid: CustomValidators.isValidCustomType(value),
+    message: `${paramName} must be a valid custom type`,
+  };
 ```
 
-### Count records per user
-```sql
-SELECT user_id, COUNT(*) as count 
-FROM vehicles 
-GROUP BY user_id;
+### Extending BaseController
+```typescript
+// Create custom base controller for your app
+export abstract class MyAppBaseController<T = any> extends BaseController<T> {
+  // Add app-specific helpers
+  protected async checkPermission(resource: string, action: string) {
+    // Custom permission logic
+  }
+  
+  protected getPaginationParams() {
+    return {
+      page: this.getParam<number>('page', 1),
+      limit: this.getParam<number>('limit', 10),
+    };
+  }
+}
 ```
 
-### Recent activity
-```sql
-SELECT * FROM tracking 
-WHERE timestamp > NOW() - INTERVAL '1 hour'
-ORDER BY timestamp DESC 
-LIMIT 100;
-```
-
-### Find duplicates
-```sql
-SELECT plate, COUNT(*) 
-FROM vehicles 
-GROUP BY plate 
-HAVING COUNT(*) > 1;
-```
-
-### Database size
-```sql
-SELECT pg_size_pretty(pg_database_size('mextrack_dev'));
+### Creating Custom Middleware
+```typescript
+// Add to your application
+app.app.use((req, res, next) => {
+  // Custom logging
+  console.log(`${req.method} ${req.path}`);
+  next();
+});
 ```
 
 ## Resources
 
+### Framework Dependencies
+- [TSyringe - Dependency Injection](https://github.com/microsoft/tsyringe)
+- [Express.js](https://expressjs.com/)
+- [Vitest - Testing Framework](https://vitest.dev)
+- [TypeScript](https://www.typescriptlang.org/)
+
+### Build Tools
 - [Turborepo Documentation](https://turbo.build/repo/docs)
-- [Lucia Auth Guide](https://lucia-auth.com)
-- [postgres.js Documentation](https://github.com/porsager/postgres)
-- [Zod Documentation](https://zod.dev)
-- [Vitest Documentation](https://vitest.dev)
+- [pnpm Workspace](https://pnpm.io/workspaces)
+
+### Security
+- [Helmet.js](https://helmetjs.github.io/)
+- [JWT.io](https://jwt.io/)
+- [bcrypt](https://github.com/kelektiv/node.bcrypt.js)
+
+### Testing
+- [Supertest - HTTP Testing](https://github.com/ladjs/supertest)
+- [Vitest Mocking Guide](https://vitest.dev/guide/mocking.html)
 
 ---
 
-**Remember**: Always test locally before deploying, keep this documentation updated, and ask for help when needed!
+## Framework Philosophy
+
+**Atriz Framework** follows these principles:
+1. **Framework First**: Build reusable abstractions before application code
+2. **Convention over Configuration**: Sensible defaults, easy to override
+3. **Type Safety**: Full TypeScript support throughout
+4. **Testability**: Built-in testing utilities and DI for easy mocking
+5. **Developer Experience**: Minimize boilerplate, maximize productivity
+6. **Security by Default**: Security features enabled out of the box
+
+---
+
+**Remember**: Build the framework, then build with the framework. Keep documentation updated as the framework evolves!

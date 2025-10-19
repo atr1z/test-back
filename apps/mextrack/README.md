@@ -1,41 +1,48 @@
 # Mextrack API
 
-Fleet tracking API service for Mextrack.
+Fleet tracking and vehicle management API built with Atriz Framework.
 
-## Features
+## Features (Planned)
 
-- 🔐 Authentication with Lucia Auth
-- 🚗 Vehicle management (CRUD operations)
-- 📍 GPS tracking data storage and retrieval
-- 🔒 Secure session management
-- ✅ Input validation with Zod
-- 📊 Structured logging
+### Core Features
+- **Vehicle Management**: CRUD operations for vehicles
+- **Real-time Tracking**: GPS tracking and location history
+- **Geofencing**: Create zones and track entry/exit events
+- **Alerts**: Speed alerts, zone alerts, maintenance reminders
+- **Reports**: Trip reports, mileage reports, driver behavior
+
+### Future Features
+- **WebSocket Support**: Real-time position updates
+- **Route Optimization**: Suggest optimal routes
+- **Maintenance Tracking**: Service schedules and history
+- **Driver Management**: Driver assignment and behavior tracking
+- **Fuel Monitoring**: Fuel consumption and efficiency
 
 ## API Endpoints
 
 ### Authentication
-
 - `POST /api/auth/register` - Register new user
 - `POST /api/auth/login` - Login
 - `POST /api/auth/logout` - Logout
 - `GET /api/auth/me` - Get current user
 
 ### Vehicles
-
 - `GET /api/vehicles` - List all vehicles
 - `GET /api/vehicles/:id` - Get vehicle details
-- `POST /api/vehicles` - Create new vehicle
+- `POST /api/vehicles` - Create vehicle
 - `PUT /api/vehicles/:id` - Update vehicle
 - `DELETE /api/vehicles/:id` - Delete vehicle
 
 ### Tracking
+- `GET /api/tracking/:vehicleId` - Get tracking history
+- `GET /api/tracking/:vehicleId/latest` - Get latest position
+- `POST /api/tracking/:vehicleId` - Add tracking point
+- `POST /api/tracking/:vehicleId/batch` - Batch import
 
-- `GET /api/tracking/:vehicleId` - Get tracking data for vehicle
-- `POST /api/tracking/:vehicleId` - Add tracking data
-
-## Environment Variables
-
-See `.env.example` for required environment variables.
+### Future Endpoints
+- Geofences: `/api/geofences`
+- Alerts: `/api/alerts`
+- Reports: `/api/reports`
 
 ## Development
 
@@ -43,32 +50,29 @@ See `.env.example` for required environment variables.
 # Install dependencies
 pnpm install
 
-# Run in development mode
+# Start development server
 pnpm dev
 
 # Build
 pnpm build
 
-# Start production server
-pnpm start
-
 # Run tests
 pnpm test
-
-# Run tests in watch mode
-pnpm test:watch
 ```
 
-## Deployment
+## Environment Variables
 
-This service is designed to be deployed with Dokploy.
+See `env.example` for required configuration.
 
-**Build Command:**
-```bash
-pnpm install && pnpm build
-```
+## Tech Stack
 
-**Start Command:**
-```bash
-node dist/index.js
-```
+- **Framework**: Atriz Framework (@atriz/core, @atriz/auth)
+- **Runtime**: Node.js + TypeScript
+- **DI**: TSyringe
+- **Validation**: Built-in ParamValidator
+- **Testing**: Vitest
+
+## Status
+
+🚧 **In Development** - Skeleton structure only, implementation in progress.
+

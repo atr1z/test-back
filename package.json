@@ -1,57 +1,46 @@
 {
-  "name": "mextrack-backends",
-  "version": "1.0.0",
+  "name": "atriz-backend",
+  "version": "0.0.0",
   "private": true,
-  "description": "Multi-service backend for Mextrack and PShop",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
   "scripts": {
-    "dev": "turbo run dev",
-    "dev:mextrack": "turbo run dev --filter=mextrack-api",
-    "dev:pshop": "turbo run dev --filter=pshop-api",
-    
     "build": "turbo run build",
-    "build:mextrack": "turbo run build --filter=mextrack-api",
-    "build:pshop": "turbo run build --filter=pshop-api",
+    "build:atriz": "turbo run build --filter=@atriz/website",
+    "build:mextrack": "turbo run build --filter=@atriz/mextrack-api",
+    "build:pshop": "turbo run build --filter=@atriz/pshop-api",
+    
+    "dev": "turbo run dev",
+    "dev:atriz": "turbo run dev --filter=@atriz/website",
+    "dev:mextrack": "turbo run dev --filter=@atriz/mextrack-api",
+    "dev:pshop": "turbo run dev --filter=@atriz/pshop-api",
+    
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint -- --fix",
+    "format": "turbo run format",
+    "format:check": "prettier --check \"**/*.{ts,tsx,md,json}\"",
+    "type-check": "turbo run type-check",
     
     "test": "turbo run test",
     "test:watch": "turbo run test:watch",
     "test:coverage": "turbo run test:coverage",
-    "test:mextrack": "turbo run test --filter=mextrack-api",
-    "test:pshop": "turbo run test --filter=pshop-api",
+    "test:atriz": "turbo run test --filter=@atriz/website",
+    "test:mextrack": "turbo run test --filter=@atriz/mextrack-api",
+    "test:pshop": "turbo run test --filter=@atriz/pshop-api",
     
-    "db:migrate": "pnpm --filter @mextrack/database migrate",
-    "db:migrate:create": "pnpm --filter @mextrack/database migrate:create",
-    "db:rollback": "pnpm --filter @mextrack/database rollback",
-    "db:seed": "pnpm --filter @mextrack/database seed",
-    "db:seed:prod": "pnpm --filter @mextrack/database seed:prod",
-    "db:reset": "pnpm --filter @mextrack/database reset",
-    
-    "lint": "turbo run lint",
-    "lint:fix": "turbo run lint --fix",
-    "format": "prettier --write \"**/*.{ts,json,md}\"",
-    "format:check": "prettier --check \"**/*.{ts,json,md}\"",
-    "type-check": "turbo run type-check",
-    
-    "clean": "turbo run clean && rm -rf node_modules",
+    "clean": "turbo run clean",
     "clean:cache": "turbo daemon clean"
   },
   "devDependencies": {
-    "@types/node": "^20.10.6",
-    "@typescript-eslint/eslint-plugin": "^6.17.0",
-    "@typescript-eslint/parser": "^6.17.0",
-    "eslint": "^8.56.0",
-    "prettier": "^3.1.1",
-    "tsx": "^4.7.0",
-    "turbo": "^2.3.0",
-    "typescript": "^5.3.3",
-    "vitest": "^1.1.0"
+    "@typescript-eslint/eslint-plugin": "^6.11.0",
+    "@typescript-eslint/parser": "^6.11.0",
+    "eslint": "^8.54.0",
+    "prettier": "^3.0.3",
+    "turbo": "^2.1.0",
+    "typescript": "^5.2.2"
   },
+  "packageManager": "pnpm@8.10.0",
   "engines": {
-    "node": ">=20.0.0",
+    "node": ">=18.0.0",
     "pnpm": ">=8.0.0"
-  },
-  "packageManager": "pnpm@8.15.0"
+  }
 }
+

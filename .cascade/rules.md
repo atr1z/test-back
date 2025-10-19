@@ -1,181 +1,262 @@
-# Mextrack Backends - Project Rules
+# Atriz Framework - Project Rules
 
 ## Project Overview
-- **Project Name**: mextrack-backends
-- **Type**: Turborepo Monorepo
-- **Purpose**: Multi-service backend for Mextrack (fleet tracking) and PShop (point of sale)
-- **Tech Stack**: Node.js, Express, TypeScript, PostgreSQL, Lucia Auth
+- **Project Name**: atriz-backend
+- **Type**: Framework + Turborepo Monorepo
+- **Purpose**: **Framework-first approach** for building scalable, maintainable backend services
+- **Tech Stack**: Node.js, Express, TypeScript, TSyringe (DI), JWT Auth, bcrypt
 - **Package Manager**: pnpm with Turborepo
 - **Testing**: Vitest
-- **Deployment**: Dokploy
+- **Philosophy**: Build the framework first, then build applications with it
 
 ## Architecture
 
 ### Monorepo Structure
 ```
-mextrack-backends/
-├── apps/                    # Application services
-│   ├── mextrack/           # Fleet tracking API (port 3001)
-│   └── pshop/              # Point of sale API (port 3002)
-├── packages/               # Shared packages
-│   ├── auth/              # Lucia Auth implementation
-│   ├── database/          # PostgreSQL client + migrations
-│   ├── types/             # TypeScript type definitions
-│   └── utils/             # Shared utilities
+atriz-backend/
+├── packages/               # Framework packages (THE CORE)
+│   ├── core/              # Main framework (BaseController, DI, Validators, etc.)
+│   └── auth/              # Authentication module (JWT, Password, Middleware)
+├── apps/                  # Applications built with the framework
+│   ├── atriz/            # Example/demo app
+│   ├── mextrack/         # Fleet tracking API (future)
+│   └── pshop/            # Point of sale API (future)
 ```
 
-### Database Architecture
-- **Shared users table**: All services use the same authentication
-- **Service-specific tables**: Each service has its own domain tables
-- **Migrations**: Sequential SQL files in `packages/database/src/migrations/`
-- **Seeds**: Environment-specific data in `packages/database/src/seeds/{env}/`
+### Framework Architecture (@atriz/core)
+The core framework provides:
+- **Dependency Injection**: TSyringe-based container for loose coupling
+- **BaseController**: Abstract controller class with built-in validation and response helpers
+- **Parameter Validation**: Type-safe validation system (email, password, phone, UUID, etc.)
+- **Middleware**: Async handler, logger, error handling
+- **AtrizApp**: Express application wrapper with security defaults
+- **Testing Utilities**: Mock request/response, controller test helpers
+- **Type System**: Shared types for controllers, validation, responses
+
+### Authentication Architecture (@atriz/auth)
+- **JWT-based authentication**: Token generation and verification
+- **Password hashing**: bcrypt for secure password storage
+- **Auth Middleware Factory**: Creates middleware from services
+- **DI Integration**: All services are injectable
 
 ## Key Design Decisions
 
-1. **Turborepo over pnpm workspaces alone**: Better caching and build orchestration
-2. **Lucia Auth**: Modern, secure session-based authentication
-3. **Custom migrations**: Full SQL control without ORM overhead
-4. **postgres package**: Lightweight PostgreSQL client
-5. **Zod**: Runtime type validation
-6. **Winston**: Structured logging
-7. **Vitest**: Fast, modern testing framework
+1. **Framework-First**: Build reusable abstractions before application code
+2. **Dependency Injection**: TSyringe for testability and modularity
+3. **BaseController Pattern**: Inspired by endpoint pattern, but more flexible
+4. **Built-in Validation**: No external validation libraries needed (custom ParamValidator)
+5. **Type Safety**: Full TypeScript support with strict mode
+6. **Convention over Configuration**: Sensible defaults, easy to override
+7. **Testing-Friendly**: Built-in mocks and test helpers
+8. **Security by Default**: Helmet, CORS, compression, SQL injection prevention
 
 ## Development Guidelines
 
 ### Package Management
 - Always use `pnpm` for package installation
 - Workspace packages use `workspace:*` protocol
-- Run commands from root using Turbo: `pnpm dev`, `pnpm build`, `pnpm test`
+- Run commands from root using scripts: `pnpm dev`, `pnpm build`, `pnpm test`
+- Use app-specific scripts to run individual apps: `pnpm dev:mextrack`, `pnpm dev:pshop`
 
-### Code Structure
-- **Controllers**: Handle HTTP requests/responses
-- **Services**: Business logic layer
-- **Models**: Database queries (if needed)
-- **Middleware**: Request processing (auth, validation, errors)
-- **Routes**: API endpoint definitions
+### Framework Development Workflow
+1. **Build framework packages first** (`@atriz/core`, `@atriz/auth`)
+2. **Write tests for framework code** (high coverage required)
+3. **Build applications** using framework abstractions
+4. **Refactor common patterns** back into framework packages
 
-### Database Operations
-```bash
-pnpm db:migrate        # Run migrations
-pnpm db:seed          # Seed development data
-pnpm db:reset         # Reset database (dev only)
-pnpm db:rollback      # Remove last migration record
+### Code Structure (Framework)
+```
+packages/core/
+├── src/
+│   ├── app.ts                 # AtrizApp class
+│   ├── controller/            # BaseController
+│   ├── di/                    # Dependency injection
+│   ├── middleware/            # Express middleware
+│   ├── validators/            # Parameter validation
+│   ├── testing/               # Test utilities
+│   ├── types/                 # TypeScript types
+│   └── utils/                 # Utility functions
+```
+
+### Code Structure (Applications)
+- **Controllers**: Extend `BaseController`, define params and execute logic
+- **Services**: Business logic, injected via DI container
+- **Routes**: Wire controllers with Express routes, resolve services from DI
+- **DI Container**: Register services at startup
+
+### Controller Pattern
+Every controller follows this structure:
+```typescript
+export class MyController extends BaseController<Services> {
+    constructor(req, res, services) {
+        super(req, res, services);
+        this.requiresAuth = true; // or false
+    }
+    
+    protected defineParams(): ParamDefinition[] {
+        return [/* validation rules */];
+    }
+    
+    protected async execute(): Promise<any> {
+        // Business logic here
+        return data;
+    }
+}
 ```
 
 ### Testing Strategy
-- Unit tests for services and utilities
-- Integration tests for API routes
-- Use test database for integration tests
-- Minimum 80% coverage for critical paths
+- **Framework packages**: Unit tests with 90%+ coverage
+- **Application code**: Integration tests for endpoints
+- **Use test helpers**: `mockRequest`, `mockResponse`, `controllerTestHelper`
+- **Mock services**: Use DI container to inject mocks
 
 ### Error Handling
-- Use custom error classes from `@mextrack/utils`
-- Always catch and log errors
-- Return structured API responses
-- Never expose sensitive error details in production
+- Controllers automatically handle errors via `BaseController.handleError()`
+- Use built-in response helpers: `success()`, `error()`, `notFound()`, `unauthorized()`, etc.
+- Validation errors handled automatically by `ParamValidator`
+- Never expose sensitive details in production (controlled by `AtrizApp.config.env`)
 
 ## Environment Variables
 
-### Required for All Services
-- `DATABASE_URL`: PostgreSQL connection string
+### Required for All Applications
 - `NODE_ENV`: development | test | production
 - `PORT`: Service port number
-- `CORS_ORIGIN`: Allowed origin for CORS
-- `LOG_LEVEL`: debug | info | warn | error
+- `CORS_ORIGIN`: Allowed origin(s) for CORS
+- `LOG_LEVEL`: debug | info | warn | error (optional)
 
-### Auth-specific
-- `JWT_SECRET`: JWT signing secret (not used with Lucia but kept for compatibility)
-- `SESSION_SECRET`: Session cookie secret
+### Auth-specific (@atriz/auth)
+- `JWT_SECRET`: Secret key for JWT signing (required)
+- `JWT_EXPIRES_IN`: Token expiration time (default: '24h')
+
+### Optional (App-specific)
+- `DATABASE_URL`: If using a database
+- `REDIS_URL`: If using Redis for caching
+- Any other service-specific variables
 
 ## API Conventions
 
 ### Request/Response Format
+All responses follow this structure (handled by `BaseController`):
+
 ```typescript
 // Success Response
 {
   "success": true,
-  "data": {},
-  "message": "Optional message"
+  "data": any,
+  "message": "Optional message",
+  "meta": {
+    "timestamp": "2025-10-19T...",
+    "path": "/api/resource"
+  }
 }
 
 // Error Response
 {
   "success": false,
-  "error": "Error message",
-  "details": {} // Optional validation details
+  "message": "Error message",
+  "errors": ["Validation error 1", "Validation error 2"],
+  "meta": {
+    "timestamp": "2025-10-19T...",
+    "path": "/api/resource"
+  }
 }
 ```
 
-### HTTP Status Codes
-- 200: Success
-- 201: Created
-- 204: No Content
-- 400: Bad Request / Validation Error
-- 401: Unauthorized
-- 403: Forbidden
-- 404: Not Found
-- 409: Conflict
-- 500: Internal Server Error
+### HTTP Status Codes (HttpStatus enum)
+- `200` OK: Success
+- `201` Created: Resource created
+- `204` NoContent: Success, no body
+- `400` BadRequest: Client error
+- `401` Unauthorized: Authentication required
+- `403` Forbidden: No permission
+- `404` NotFound: Resource not found
+- `409` Conflict: Resource already exists
+- `422` UnprocessableEntity: Validation failed
+- `500` InternalServerError: Server error
 
 ### Authentication
-- Session-based using Lucia Auth
-- Session cookie: `auth_session`
-- Protected routes use `authMiddleware`
-- Optional auth uses `optionalAuthMiddleware`
+- **JWT-based** using `@atriz/auth`
+- Authorization header: `Authorization: Bearer <token>`
+- Protected routes use auth middleware from `createAuthMiddleware(jwtService)`
+- Controllers set `this.requiresAuth = true` to enforce authentication
+- User info available in controller as `this.userId`, `this.userEmail`, `this.user`
 
-## Migration Guidelines
+## Framework Package Usage
 
-### Creating Migrations
-```bash
-pnpm db:migrate:create
-# Enter migration name when prompted
-# Edit the generated SQL file
-# Run: pnpm db:migrate
-```
+### @atriz/core
 
-### Migration Rules
-- Never modify existing migrations after they run
-- Always use transactions for multiple operations
-- Add indexes for foreign keys and query columns
-- Include rollback instructions in comments
-- Test migrations on a copy of production data
-
-### Migration File Format
-```sql
--- Migration: Description
--- Created at: ISO timestamp
-
--- Forward migration SQL
-CREATE TABLE ...
-
--- Rollback (for documentation):
--- DROP TABLE ...
-```
-
-## Shared Package Usage
-
-### @mextrack/auth
 ```typescript
-import { lucia, hashPassword, verifyPassword, authMiddleware } from '@mextrack/auth';
+import {
+    BaseController,
+    ParamDefinition,
+    ControllerRequest,
+    HttpStatus,
+    AtrizApp,
+    registerSingleton,
+    resolve,
+} from '@atriz/core';
+
+// Create an Express app
+const app = new AtrizApp({
+    port: 3000,
+    env: 'development',
+    cors: { origin: 'http://localhost:5173' }
+});
+
+// Define a controller
+export class MyController extends BaseController {
+    protected defineParams(): ParamDefinition[] {
+        return [
+            { name: 'email', type: 'email', required: true },
+            { name: 'age', type: 'number', min: 18, max: 100 },
+        ];
+    }
+    
+    protected async execute() {
+        const email = this.getParam<string>('email');
+        return { email };
+    }
+}
 ```
 
-### @mextrack/database
+### @atriz/auth
+
 ```typescript
-import { sql } from '@mextrack/database';
+import {
+    JWTService,
+    PasswordService,
+    createAuthMiddleware,
+    AUTH_TOKENS
+} from '@atriz/auth';
 
-// Query example
-const users = await sql`SELECT * FROM users WHERE id = ${userId}`;
+// Initialize services
+const jwtService = new JWTService(process.env.JWT_SECRET!);
+const passwordService = new PasswordService();
+
+// Register in DI container
+registerSingleton(AUTH_TOKENS.JWTService, JWTService);
+registerSingleton(AUTH_TOKENS.PasswordService, PasswordService);
+
+// Use in routes
+const authMiddleware = createAuthMiddleware(jwtService);
+router.get('/protected', authMiddleware, handler);
 ```
 
-### @mextrack/types
-```typescript
-import type { User, ApiResponse, PaginatedResponse } from '@mextrack/types';
-```
+### Validation Types
 
-### @mextrack/utils
-```typescript
-import { logger, successResponse, errorResponse, ValidationError } from '@mextrack/utils';
-```
+Available param types:
+- `'string'` - Any string
+- `'number'` - Numeric value
+- `'boolean'` - Boolean value
+- `'email'` - Valid email format
+- `'password'` - Strong password (8+ chars, uppercase, lowercase, number, special)
+- `'phone'` - Phone number format
+- `'date'` - Valid date
+- `'url'` - Valid URL
+- `'uuid'` - Valid UUID
+- `'object'` - Object type
+- `'array'` - Array type
+- `'file'` - File upload
 
 ## Deployment
 
@@ -184,54 +265,75 @@ import { logger, successResponse, errorResponse, ValidationError } from '@mextra
 # Install dependencies
 pnpm install
 
-# Build all packages and apps
+# Build all packages and apps (Turbo handles dependency order)
 pnpm build
 
-# Or build specific service
-pnpm build:mextrack
-pnpm build:pshop
+# Build specific app
+turbo run build --filter=atriz-app
 ```
 
-### Dokploy Configuration
-**Build Command**: `pnpm install && pnpm build:{service}`
-**Start Command**: `node dist/index.js`
-**Working Directory**: `apps/{service}`
+### Deployment Steps
+1. Build framework packages first (Turbo handles this automatically)
+2. Build application
+3. Set environment variables
+4. Start application: `node dist/index.js`
 
 ### Environment Setup
-1. Set all required environment variables
-2. Run migrations: `pnpm db:migrate`
-3. Seed production data: `pnpm db:seed:prod`
-4. Start services
+1. Set all required environment variables (see Environment Variables section)
+2. Ensure `NODE_ENV=production`
+3. Set `JWT_SECRET` to a strong random value
+4. Configure CORS_ORIGIN to your frontend domain
+5. Start the service
 
 ## Security Best Practices
 
 1. **Never commit .env files** (except .env.example)
 2. **Use environment variables** for all secrets
-3. **Hash passwords** with Argon2id (via @node-rs/argon2)
-4. **Validate all input** with Zod schemas
-5. **Sanitize output** to prevent XSS
-6. **Use secure session cookies** in production
-7. **Rate limit** authentication endpoints (TODO)
+3. **Hash passwords** with bcrypt (via `@atriz/auth` PasswordService)
+4. **Validate all input** via `ParamValidator` (built-in SQL injection prevention)
+5. **Use Helmet** for security headers (enabled by default in `AtrizApp`)
+6. **JWT tokens** should be stored securely (HttpOnly cookies preferred)
+7. **Rate limit** authentication endpoints (implement in applications)
 8. **Use HTTPS** in production
 9. **Keep dependencies updated** regularly
-10. **Review database queries** for SQL injection risks
+10. **Strong JWT secrets** (use long random strings, rotate regularly)
+11. **Enable CORS** only for trusted domains
+12. **Input validation** is automatic via `defineParams()` in controllers
 
 ## Common Issues & Solutions
 
-### Issue: Package not found
-**Solution**: Run `pnpm install` from root
-
-### Issue: Database connection fails
-**Solution**: Check DATABASE_URL environment variable
-
-### Issue: Turbo cache issues
-**Solution**: Run `pnpm clean:cache`
+### Issue: Package not found (@atriz/core or @atriz/auth)
+**Solution**: 
+```bash
+pnpm install        # From root
+pnpm build          # Build framework packages
+```
 
 ### Issue: TypeScript errors in workspace packages
-**Solution**: Run `pnpm type-check` to see all errors
+**Solution**: 
+```bash
+pnpm type-check     # See all errors
+pnpm build          # Rebuild packages
+```
 
-### Issue: Migrations don't run
-**Solution**: Check if migrations table exists, verify file order
+### Issue: Turbo cache issues
+**Solution**: 
+```bash
+pnpm clean          # Clean all dist folders
+turbo daemon clean  # Clear Turbo cache
+```
+
+### Issue: DI container errors
+**Solution**: Ensure services are registered before resolving:
+```typescript
+// Register first
+registerSingleton(AUTH_TOKENS.JWTService, JWTService);
+// Then resolve
+const jwt = resolve<JWTService>(AUTH_TOKENS.JWTService);
+```
+
+### Issue: Controller validation not working
+**Solution**: Check `defineParams()` returns correct ParamDefinition array
 
 ## Git Workflow
 
@@ -262,35 +364,68 @@ Example: feat(mextrack): add vehicle tracking endpoint
 ## CI/CD
 
 ### GitHub Actions Workflows
-- **test.yml**: Run tests on push/PR
-- **lint.yml**: Run linting and type checking
+
+We use a **smart monorepo CI/CD strategy** that leverages Turbo:
+
+- **`ci.yml`**: Main CI pipeline - tests, lint, build (all PRs/pushes)
+- **`framework-quality.yml`**: Deep framework testing (90%+ coverage required)
+- **`app-atriz.yml`**: Atriz example app CI
+- **`app-mextrack.yml`**: Mextrack-specific CI/CD
+- **`app-pshop.yml`**: PShop-specific CI/CD
+- **`dependency-review.yml`**: Security check for dependencies
+
+**Key Features:**
+- ✅ Only runs affected packages (Turbo smart filtering)
+- ✅ Caching for faster builds
+- ✅ Matrix testing (Node 18.x and 20.x)
+- ✅ Coverage tracking
+- ✅ Dependency security review
+
+See [.github/workflows/README.md](../.github/workflows/README.md) for details.
 
 ### Pre-deployment Checklist
-- [ ] All tests pass
+- [ ] All CI checks pass
 - [ ] No linting errors
+- [ ] Type checking passes
+- [ ] All tests pass with required coverage
+- [ ] No security vulnerabilities
+- [ ] Code reviewed and approved
 - [ ] Environment variables configured
-- [ ] Database migrations applied
 - [ ] Build succeeds
 - [ ] Health endpoint responds
 
 ## Future Enhancements
 
-### Planned Features
-- [ ] Complete PShop service implementation
-- [ ] API documentation (OpenAPI/Swagger)
+### Framework Roadmap (@atriz/core)
+- [ ] Database package (`@atriz/database` with migrations, ORM-agnostic)
+- [ ] Caching package (`@atriz/cache` with Redis support)
 - [ ] Rate limiting middleware
-- [ ] Email verification system
-- [ ] WebSocket support for real-time tracking
-- [ ] Automated backups
-- [ ] Performance monitoring
-- [ ] End-to-end tests
+- [ ] File upload middleware
+- [ ] API documentation generator (OpenAPI/Swagger)
+- [ ] WebSocket support package
+- [ ] WebSocket for live tracking
+- [ ] Queue system package (Bull/BullMQ integration)
+- [ ] Email service package
+- [ ] Logging package (Winston/Pino integration)
+- [ ] Metrics and monitoring package
 
-### Technical Debt
-- [ ] Add comprehensive integration tests
-- [ ] Implement request logging middleware
-- [ ] Add API versioning
-- [ ] Database connection pooling optimization
-- [ ] Implement caching layer (Redis)
+### Framework Features
+- [ ] Role-based access control (RBAC) in controllers
+- [ ] Pagination helpers
+- [ ] Query builder integration
+- [ ] GraphQL support
+- [ ] Server-sent events (SSE)
+- [ ] Multi-tenant support
+- [ ] API versioning utilities
+- [ ] Request/Response transformers
+- [ ] Custom validation rules registry
+
+### Application Examples
+- [ ] Complete example apps showcasing all features
+- [ ] E-commerce demo
+- [ ] Real-time chat demo
+- [ ] File management demo
+- [ ] Admin dashboard demo
 
 ## Contact & Support
 
@@ -302,5 +437,7 @@ For questions or issues:
 
 ---
 
-**Last Updated**: 2024-01-19
+**Last Updated**: 2025-10-19
+**Project Type**: Framework Development
 **Maintainers**: Atriz Development Team
+**Philosophy**: Framework First, Applications Second

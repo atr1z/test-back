@@ -1,45 +1,41 @@
-import express from 'express';
-import cors from 'cors';
-import cookieParser from 'cookie-parser';
-import dotenv from 'dotenv';
-import { logger } from '@mextrack/utils';
+import 'reflect-metadata';
+import { AtrizApp, loadEnv, getEnv, getEnvAsNumber, logger } from '@atriz/core';
+import { setupContainer } from './di';
 import routes from './routes';
-import { errorHandler } from './middleware/error-handler';
 
-dotenv.config();
+// Load environment variables
+loadEnv();
 
-const app = express();
-const PORT = process.env.PORT || 3001;
+// Setup DI container
+setupContainer();
 
-// Middleware
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
-  credentials: true,
-}));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
-
-// Health check
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    service: 'mextrack-api',
-    timestamp: new Date().toISOString()
-  });
+// Create app instance
+const app = new AtrizApp({
+    port: getEnvAsNumber('PORT', 3001),
+    env: getEnv('NODE_ENV', 'development'),
+    cors: {
+        origin: getEnv('CORS_ORIGIN', '*'),
+        credentials: true,
+    },
 });
 
-// Routes
-app.use('/api', routes);
+// Add custom middleware
+app.app.use(logger);
 
-// Error handling
-app.use(errorHandler);
+// Register routes
+app.app.use('/api', routes());
+
+// Health check
+app.app.get('/health', (req, res) => {
+    res.json({
+        status: 'ok',
+        service: 'mextrack-api',
+        version: '0.0.0',
+        timestamp: new Date().toISOString(),
+    });
+});
 
 // Start server
-if (process.env.NODE_ENV !== 'test') {
-  app.listen(PORT, () => {
-    logger.info(`Mextrack API listening on port ${PORT}`);
-  });
-}
-
-export { app };
+app.listen(() => {
+    console.log('🚗 Mextrack API ready for fleet tracking');
+});

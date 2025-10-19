@@ -1,12 +1,20 @@
 import { Router } from 'express';
-import authRoutes from './auth';
-import vehiclesRoutes from './vehicles';
-import trackingRoutes from './tracking';
+import authRoutes from './auth.routes';
+import vehicleRoutes from './vehicle.routes';
+import trackingRoutes from './tracking.routes';
 
-const router = Router();
+export default (): Router => {
+    const router = Router();
 
-router.use('/auth', authRoutes);
-router.use('/vehicles', vehiclesRoutes);
-router.use('/tracking', trackingRoutes);
+    // Mount routes
+    router.use('/auth', authRoutes());
+    router.use('/vehicles', vehicleRoutes());
+    router.use('/tracking', trackingRoutes());
 
-export default router;
+    // Future routes
+    // router.use('/geofences', geofenceRoutes());
+    // router.use('/alerts', alertRoutes());
+    // router.use('/reports', reportRoutes());
+
+    return router;
+};

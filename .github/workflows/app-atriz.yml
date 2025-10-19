@@ -1,0 +1,49 @@
+name: Atriz Example App
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'apps/atriz/**'
+      - 'packages/**'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'apps/atriz/**'
+      - 'packages/**'
+
+jobs:
+  build-and-test:
+    name: Build and Test Atriz
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Atriz
+        run: pnpm build:atriz
+
+      - name: Test Atriz
+        run: pnpm test:atriz
+
+      - name: Lint Atriz
+        run: pnpm --filter @atriz/website lint
+
+  # This is the example/demo app, so no deployment needed
+  # It serves as a reference for framework usage
+

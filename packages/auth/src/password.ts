@@ -1,34 +1,23 @@
-import { hash, verify } from '@node-rs/argon2';
+import bcrypt from 'bcryptjs';
 
-/**
- * Hash options following OWASP recommendations
- */
-const HASH_OPTIONS = {
-  memoryCost: 19456,
-  timeCost: 2,
-  outputLen: 32,
-  parallelism: 1,
-};
+export class PasswordService {
+    private saltRounds: number;
 
-/**
- * Hash a password using Argon2id
- * @param password - Plain text password
- * @returns Hashed password
- */
-export async function hashPassword(password: string): Promise<string> {
-  return await hash(password, HASH_OPTIONS);
-}
+    constructor(saltRounds: number = 10) {
+        this.saltRounds = saltRounds;
+    }
 
-/**
- * Verify a password against a hash
- * @param hash - Hashed password
- * @param password - Plain text password to verify
- * @returns True if password matches
- */
-export async function verifyPassword(hash: string, password: string): Promise<boolean> {
-  try {
-    return await verify(hash, password, HASH_OPTIONS);
-  } catch {
-    return false;
-  }
+    /**
+     * Hash a password
+     */
+    async hashPassword(password: string): Promise<string> {
+        return bcrypt.hash(password, this.saltRounds);
+    }
+
+    /**
+     * Compare a password with a hash
+     */
+    async comparePassword(password: string, hash: string): Promise<boolean> {
+        return bcrypt.compare(password, hash);
+    }
 }
