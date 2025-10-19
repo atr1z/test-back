@@ -88,6 +88,12 @@ export abstract class BaseController<TServices = any> {
             // Execute business logic
             const result = await this.execute();
 
+            // If execute() returned a Response object (e.g., from this.created(), this.unauthorized(), etc.)
+            // return it directly. Otherwise, wrap it in a success response.
+            if (result && typeof result === 'object' && 'status' in result && 'json' in result) {
+                return result as Response;
+            }
+
             // Return success response
             return this.success(result);
         } catch (error) {

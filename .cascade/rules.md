@@ -355,11 +355,108 @@ Example: feat(mextrack): add vehicle tracking endpoint
 ### Pull Request Process
 1. Create feature branch from `develop`
 2. Implement changes with tests
-3. Run linting: `pnpm lint`
-4. Run tests: `pnpm test`
-5. Create PR to `develop`
-6. Request review
-7. Merge after approval
+3. **Create changeset** if framework packages changed: `pnpm changeset`
+4. Run linting: `pnpm lint`
+5. Run tests: `pnpm test`
+6. Create PR to `develop`
+7. Request review
+8. Merge after approval
+
+## Versioning & Release Process
+
+### Overview
+This project uses **Changesets** for automated version management and releases.
+
+### When to Create a Changeset
+
+Create a changeset when you modify:
+- `@atriz/core` - Core framework
+- `@atriz/auth` - Authentication module
+
+**Do NOT create changesets for**:
+- Application code (`@atriz/website`, `@atriz/mextrack-api`, `@atriz/pshop-api`)
+- Documentation changes only
+- Test-only changes
+- Internal refactoring with no API changes
+
+### Creating a Changeset
+
+```bash
+# After making changes to framework packages
+pnpm changeset
+```
+
+Follow the prompts:
+1. **Select packages**: Choose which framework packages changed
+2. **Version bump type**: 
+   - **Major**: Breaking changes
+   - **Minor**: New features (backwards compatible)
+   - **Patch**: Bug fixes
+3. **Summary**: Write clear, user-facing description
+
+### Changeset Workflow
+
+```bash
+# 1. Make changes to framework package
+# ... code changes ...
+
+# 2. Create changeset
+pnpm changeset
+
+# 3. Commit changeset with code
+git add .
+git commit -m "feat(core): add new feature"
+git push
+
+# 4. Create PR and get it merged to main
+# ... review and merge ...
+
+# 5. Automated Release Workflow:
+# - GitHub Action creates "Version Packages" PR
+# - PR updates package.json versions
+# - PR updates CHANGELOG.md files
+# - Merge the "Version Packages" PR
+# - Packages are automatically published (if NPM_TOKEN configured)
+```
+
+### Semantic Versioning Rules
+
+Follow [Semantic Versioning](https://semver.org/):
+
+**Major (Breaking Changes)**:
+- API signature changes
+- Removing public methods/properties
+- Changing behavior that breaks existing code
+- Example: `1.2.3 → 2.0.0`
+
+**Minor (New Features)**:
+- Adding new features
+- Adding new public methods
+- Deprecating (not removing) features
+- Example: `1.2.3 → 1.3.0`
+
+**Patch (Bug Fixes)**:
+- Bug fixes
+- Performance improvements
+- Documentation updates
+- Internal refactoring
+- Example: `1.2.3 → 1.2.4`
+
+### Changeset Commands
+
+```bash
+# Create new changeset
+pnpm changeset
+
+# Check changeset status
+pnpm changeset status
+
+# Version packages (done by CI)
+pnpm version-packages
+
+# Publish packages (done by CI)
+pnpm release
+```
 
 ## CI/CD
 
@@ -369,6 +466,7 @@ We use a **smart monorepo CI/CD strategy** that leverages Turbo:
 
 - **`ci.yml`**: Main CI pipeline - tests, lint, build (all PRs/pushes)
 - **`framework-quality.yml`**: Deep framework testing (90%+ coverage required)
+- **`release.yml`**: Automated versioning and package publishing
 - **`app-atriz.yml`**: Atriz example app CI
 - **`app-mextrack.yml`**: Mextrack-specific CI/CD
 - **`app-pshop.yml`**: PShop-specific CI/CD
@@ -380,6 +478,27 @@ We use a **smart monorepo CI/CD strategy** that leverages Turbo:
 - ✅ Matrix testing (Node 18.x and 20.x)
 - ✅ Coverage tracking
 - ✅ Dependency security review
+- ✅ Automated versioning with Changesets
+- ✅ Automatic changelog generation
+
+### Release Workflow
+
+The `release.yml` workflow runs on every push to `main`:
+
+1. **Detects changesets** in the repository
+2. **Creates/updates "Version Packages" PR** with:
+   - Updated package.json versions
+   - Updated CHANGELOG.md files
+   - Dependency version bumps
+3. **On merge of Version PR**:
+   - Builds all packages
+   - Publishes to npm (if NPM_TOKEN is configured)
+   - Creates GitHub releases
+
+**Setup for npm Publishing** (optional):
+1. Create npm token: https://www.npmjs.com/settings/tokens
+2. Add `NPM_TOKEN` to GitHub secrets
+3. Update package access in changesets config if needed
 
 See [.github/workflows/README.md](../.github/workflows/README.md) for details.
 

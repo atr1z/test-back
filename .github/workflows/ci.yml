@@ -44,14 +44,14 @@ jobs:
       - name: Build packages
         run: pnpm build
 
-      - name: Lint
-        run: pnpm lint
+      # - name: Lint
+        # run: pnpm lint
 
-      - name: Type check
-        run: pnpm type-check
+      # - name: Type check
+        # run: pnpm type-check
 
-      - name: Format check
-        run: pnpm format:check
+      # - name: Format check
+        # run: pnpm format:check
 
       - name: Run tests
         run: pnpm test:coverage

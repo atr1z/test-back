@@ -43,6 +43,11 @@ pnpm format                 # Format code
 pnpm format:check           # Check formatting
 pnpm type-check             # TypeScript check
 
+# Versioning & Releases
+pnpm changeset              # Create a new changeset for version bump
+pnpm version-packages       # Update package versions (automated via CI)
+pnpm release                # Publish packages (automated via CI)
+
 # Maintenance
 pnpm clean                  # Clean all dist folders
 pnpm clean:cache            # Clear Turbo cache
@@ -573,6 +578,117 @@ describe('Auth API', () => {
   });
 });
 ```
+
+## Versioning & Release Workflow
+
+### How Versioning Works
+
+This project uses **Changesets** for automated versioning and changelog generation. When you make changes to framework packages (`@atriz/core`, `@atriz/auth`), you need to create a changeset.
+
+### Creating a Changeset
+
+After making changes to a framework package:
+
+```bash
+# Create a new changeset
+pnpm changeset
+```
+
+You'll be prompted to:
+1. Select which packages changed (only framework packages)
+2. Choose version bump type (major, minor, patch)
+3. Write a summary of changes
+
+**Version Bump Types (Semantic Versioning):**
+- **Major**: Breaking changes (1.0.0 → 2.0.0)
+- **Minor**: New features, backwards compatible (1.0.0 → 1.1.0)
+- **Patch**: Bug fixes, small updates (1.0.0 → 1.0.1)
+
+### Example Workflow
+
+```bash
+# 1. Make changes to @atriz/core
+# ... edit files ...
+
+# 2. Create changeset
+pnpm changeset
+# → Select: @atriz/core
+# → Type: minor (for new feature)
+# → Summary: "Add file upload validation support"
+
+# 3. Commit everything including the changeset
+git add .
+git commit -m "feat(core): add file upload validation"
+git push
+
+# 4. Create PR and merge to main
+# ... PR review and merge ...
+
+# 5. Automated workflow kicks in:
+# - Creates "Version Packages" PR automatically
+# - Updates versions in package.json
+# - Updates CHANGELOG.md files
+# - When you merge the Version PR, packages are published (if configured)
+```
+
+### What Gets Versioned
+
+**Framework Packages** (versioned automatically):
+- `@atriz/core` - Main framework
+- `@atriz/auth` - Authentication module
+
+**Applications** (not versioned, they're private):
+- `@atriz/website` - Example app
+- `@atriz/mextrack-api` - Mextrack API
+- `@atriz/pshop-api` - PShop API
+
+### CI/CD Integration
+
+The `.github/workflows/release.yml` workflow:
+1. Runs on every push to `main`
+2. Checks for changesets
+3. Creates/updates a "Version Packages" PR
+4. When merged, publishes to npm (if NPM_TOKEN is set)
+
+### Best Practices
+
+1. **Always create changesets** for framework package changes
+2. **One changeset per logical change** - separate bug fixes from features
+3. **Clear summaries** - write user-facing descriptions
+4. **Review version PRs** - check that versions and changelogs look correct
+
+### Commands Reference
+
+```bash
+pnpm changeset              # Create new changeset
+pnpm changeset status       # Check current status
+pnpm version-packages       # Update versions (CI does this)
+pnpm release               # Build & publish (CI does this)
+```
+
+### Troubleshooting Versioning
+
+**Forgot to add changeset before PR?**
+```bash
+pnpm changeset
+git add .changeset/
+git commit -m "chore: add changeset"
+git push
+```
+
+**Need to edit a changeset?**
+```bash
+# Changesets are markdown files
+ls .changeset/
+# Edit the file directly
+code .changeset/some-file.md
+```
+
+**Version PR has conflicts?**
+1. Check out the version PR branch
+2. Merge main into it
+3. Resolve conflicts in package.json and CHANGELOG.md
+4. Commit and push
 
 ## Troubleshooting Guide
 

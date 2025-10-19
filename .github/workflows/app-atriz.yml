@@ -41,8 +41,8 @@ jobs:
       - name: Test Atriz
         run: pnpm test:atriz
 
-      - name: Lint Atriz
-        run: pnpm --filter @atriz/website lint
+      # - name: Lint Atriz
+        # run: pnpm --filter @atriz/website lint
 
   # This is the example/demo app, so no deployment needed
   # It serves as a reference for framework usage

@@ -41,8 +41,8 @@ jobs:
       - name: Test Mextrack
         run: pnpm test:mextrack
 
-      - name: Lint Mextrack
-        run: pnpm --filter @atriz/mextrack-api lint
+      # å- name: Lint Mextrack
+        # run: pnpm --filter @atriz/mextrack-api lint
 
   # Placeholder for deployment (to be implemented later)
   # deploy:

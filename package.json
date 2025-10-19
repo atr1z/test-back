@@ -7,29 +7,31 @@
     "build:atriz": "turbo run build --filter=@atriz/website",
     "build:mextrack": "turbo run build --filter=@atriz/mextrack-api",
     "build:pshop": "turbo run build --filter=@atriz/pshop-api",
-    
     "dev": "turbo run dev",
     "dev:atriz": "turbo run dev --filter=@atriz/website",
     "dev:mextrack": "turbo run dev --filter=@atriz/mextrack-api",
     "dev:pshop": "turbo run dev --filter=@atriz/pshop-api",
-    
     "lint": "turbo run lint",
     "lint:fix": "turbo run lint -- --fix",
     "format": "turbo run format",
     "format:check": "prettier --check \"**/*.{ts,tsx,md,json}\"",
     "type-check": "turbo run type-check",
-    
     "test": "turbo run test",
     "test:watch": "turbo run test:watch",
     "test:coverage": "turbo run test:coverage",
     "test:atriz": "turbo run test --filter=@atriz/website",
     "test:mextrack": "turbo run test --filter=@atriz/mextrack-api",
     "test:pshop": "turbo run test --filter=@atriz/pshop-api",
-    
     "clean": "turbo run clean",
-    "clean:cache": "turbo daemon clean"
+    "clean:cache": "turbo daemon clean",
+    
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "pnpm build && changeset publish"
   },
   "devDependencies": {
+    "@changesets/changelog-github": "^0.5.1",
+    "@changesets/cli": "^2.29.7",
     "@typescript-eslint/eslint-plugin": "^6.11.0",
     "@typescript-eslint/parser": "^6.11.0",
     "eslint": "^8.54.0",
@@ -43,4 +45,3 @@
     "pnpm": ">=8.0.0"
   }
 }
-

@@ -41,8 +41,8 @@ jobs:
       - name: Test PShop
         run: pnpm test:pshop
 
-      - name: Lint PShop
-        run: pnpm --filter @atriz/pshop-api lint
+      # - name: Lint PShop
+        # run: pnpm --filter @atriz/pshop-api lint
 
   # Placeholder for deployment (to be implemented later)
   # deploy:

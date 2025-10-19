@@ -189,8 +189,8 @@ describe('AuthController', () => {
             );
 
             expect(result.statusCode).toBe(HttpStatus.OK);
-            expect(result.body.token).toBe('mock-jwt-token');
-            expect(result.body.user.email).toBe('demo@example.com');
+            expect(result.body.data.token).toBe('mock-jwt-token');
+            expect(result.body.data.user.email).toBe('demo@example.com');
         });
 
         it('should fail with incorrect email', async () => {
