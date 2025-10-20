@@ -82,28 +82,78 @@ The Atriz framework uses PostgreSQL with a **multi-database architecture** that 
 # 1. Install dependencies
 pnpm install
 
-# 2. Build the database package
+# 2. Configure PostgreSQL credentials (root .env file)
+cp env.example .env
+# Edit .env with your PostgreSQL credentials (PGHOST, PGPORT, PGUSER, PGPASSWORD)
+
+# 3. Build the database package
 pnpm build
 
-# 3. Create all databases
+# 4. Create all databases
 pnpm db:create
 
-# 4. Configure environment variables (see below)
+# Or create specific databases
+pnpm db:create:core         # Core/shared auth database only
+pnpm db:create:atriz        # Atriz app database only
+pnpm db:create:mextrack     # Mextrack app database only
+pnpm db:create:pshop        # PShop app database only
 
-# 5. Run shared database migrations
+# 5. Configure app environment variables (see below)
+
+# 6. Run shared database migrations
 pnpm db:migrate:core
 
-# 6. Run application migrations
+# 7. Run application migrations
 pnpm db:migrate:atriz
 pnpm db:migrate:mextrack
 pnpm db:migrate:pshop
 
-# 7. (Optional) Seed development data
+# 8. (Optional) Seed development data
 pnpm db:seed:core
 pnpm db:seed:atriz
 ```
 
+### Setting Up a Single Application
+
+If you only want to work on one app (e.g., Mextrack):
+
+```bash
+# 1. Create required databases
+pnpm db:create:core          # Create core/shared database
+pnpm db:create:mextrack      # Create Mextrack database
+
+# 2. Configure environment variables
+# Edit packages/core/.env and apps/mextrack/.env
+
+# 3. Run migrations
+pnpm db:migrate:core         # Shared database
+pnpm db:migrate:mextrack     # Mextrack database
+
+# 4. (Optional) Seed data
+pnpm db:seed:core            # Shared data
+pnpm db:seed:mextrack        # Mextrack data
+```
+
 ### Environment Configuration
+
+The project uses two types of environment configuration:
+
+1. **Root `.env`** - PostgreSQL server credentials (for database scripts)
+2. **Package `.env` files** - Application database URLs (for apps and packages)
+
+#### Root Environment (`.env`)
+
+This file is used by database management scripts to connect to PostgreSQL:
+
+```env
+# Copy from env.example
+PGHOST=localhost
+PGPORT=5432
+PGUSER=postgres
+PGPASSWORD=postgres
+```
+
+**Note:** This is for server-level access to create/manage databases, not for application use.
 
 #### Core Package (`packages/core/.env`)
 
@@ -428,28 +478,31 @@ GRANT ALL PRIVILEGES ON DATABASE atriz_shared TO your_user;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO your_user;
 ```
 
-### Reset Database (Development Only)
+### Clean Database (Development Only)
 
-⚠️ **WARNING**: These commands will DELETE ALL DATA in the specified database(s)!
+⚠️ **WARNING**: These commands will DELETE ALL DATA (but preserve database structure)!
 
 ```bash
-# Clean all databases (drops and recreates)
+# Clean all databases (truncates all tables)
 pnpm db:clean
 
 # Clean specific databases
-pnpm db:clean:shared    # Clean shared database only
+pnpm db:clean:core      # Clean core/shared database only
 pnpm db:clean:atriz     # Clean Atriz app database only
 pnpm db:clean:mextrack  # Clean Mextrack app database only
 pnpm db:clean:pshop     # Clean PShop app database only
 
-# After cleaning, re-run migrations
-pnpm db:migrate:core    # For shared database
-pnpm db:migrate         # For all app databases
-
-# (Optional) Re-seed data
-pnpm db:seed:core       # For shared database
+# After cleaning, just re-seed (no migrations needed!)
+pnpm db:seed:core       # For core database
 pnpm db:seed            # For all app databases
 ```
+
+**What `db:clean` does:**
+- ✅ Truncates all tables (deletes all data)
+- ✅ Resets auto-increment sequences
+- ✅ Preserves database structure (tables, columns, indexes)
+- ✅ Preserves migration history
+- ❌ Does NOT drop or recreate databases
 
 #### Manual Reset (Alternative)
 

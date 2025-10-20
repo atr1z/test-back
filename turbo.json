@@ -30,6 +30,13 @@
     },
     "clean": {
       "cache": false
+    },
+    "migrate": {
+      "cache": false
+    },
+    "seed": {
+      "cache": false,
+      "dependsOn": ["migrate"]
     }
   }
 }
