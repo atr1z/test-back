@@ -20,7 +20,7 @@
   "typescript.preferences.importModuleSpecifier": "relative",
   "javascript.preferences.importModuleSpecifier": "relative",
   "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "vscode.typescript-language-features"
   },
   "[javascript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
@@ -40,6 +40,15 @@
       "name": "core",
       "connectString": "postgresql://dev:chingonauta@62.72.0.111:5432/atriz_core",
       "group": "Testing"
+    },
+    {
+      "ssh": "Disabled",
+      "previewLimit": 50,
+      "server": "localhost",
+      "driver": "PostgreSQL",
+      "group": "Testing",
+      "connectString": "postgresql://dev:chingonauta@62.72.0.111:5432/atriz_db",
+      "name": "Atriz"
     }
   ]
 }

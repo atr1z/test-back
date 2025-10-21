@@ -42,21 +42,21 @@ pnpm db:create:mextrack
 pnpm db:migrate:mextrack
 ```
 
-### clean-database.js
+### truncate-tables.js
 
 Truncates all tables in PostgreSQL databases. **This deletes all data but preserves the database structure!**
 
 **Usage:**
 ```bash
-# Clean specific database
-node scripts/clean-database.js <database-name>
+# Truncate tables in specific database
+node scripts/truncate-tables.js <database-name>
 
 # Or use npm scripts
-pnpm db:clean                # Clean all databases
-pnpm db:clean:core           # Clean core/shared database only
-pnpm db:clean:atriz          # Clean Atriz app database only
-pnpm db:clean:mextrack       # Clean Mextrack app database only
-pnpm db:clean:pshop          # Clean PShop app database only
+pnpm db:truncate                # Truncate all database tables
+pnpm db:truncate:core           # Truncate core/shared database tables only
+pnpm db:truncate:atriz          # Truncate Atriz app database tables only
+pnpm db:truncate:mextrack       # Truncate Mextrack app database tables only
+pnpm db:truncate:pshop          # Truncate PShop app database tables only
 ```
 
 **Available database names:**
@@ -75,8 +75,8 @@ pnpm db:clean:pshop          # Clean PShop app database only
 
 **Example workflow:**
 ```bash
-# Clean Mextrack database (removes data, keeps structure)
-pnpm db:clean:mextrack
+# Truncate Mextrack database tables (removes data, keeps structure)
+pnpm db:truncate:mextrack
 
 # No need to re-run migrations! Just re-seed:
 pnpm db:seed:mextrack
@@ -164,7 +164,7 @@ PGPASSWORD=postgres
 
 ## Safety
 
-⚠️ **Warning**: The `clean-database.js` script is destructive and will permanently delete all data in the specified database(s). Use with caution and **NEVER** run this in production!
+⚠️ **Warning**: The `truncate-tables.js` script is destructive and will permanently delete all data in the specified database(s). Use with caution and **NEVER** run this in production!
 
 The scripts are designed for development use only.
 
@@ -181,7 +181,7 @@ If you get connection errors:
 
 If you can't drop a database because it's in use:
 1. Close all connections to the database
-2. The `clean-database.js` script automatically terminates connections
+2. The `truncate-tables.js` script connects to databases safely
 3. If it still fails, manually check with:
    ```sql
    SELECT * FROM pg_stat_activity WHERE datname = 'your_database_name';

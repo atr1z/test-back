@@ -4,7 +4,7 @@ import cors from 'cors';
 import compression from 'compression';
 import { AppConfig, ErrorResponse } from './types';
 
-export class AtrizApp {
+export class WebService {
     public app: Application;
     private config: AppConfig;
 

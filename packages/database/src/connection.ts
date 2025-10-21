@@ -18,47 +18,47 @@ import { DatabaseConfig, DatabasePool, TransactionCallback } from './types';
  * ```
  */
 export function createDatabasePool(config: DatabaseConfig): DatabasePool {
-  const pool = new Pool({
-    connectionString: config.connectionString,
-    max: config.max ?? 10,
-    idleTimeoutMillis: config.idleTimeoutMillis ?? 30000,
-    connectionTimeoutMillis: config.connectionTimeoutMillis ?? 2000,
-    ...config,
-  });
+    const pool = new Pool({
+        connectionString: config.connectionString,
+        max: config.max ?? 10,
+        idleTimeoutMillis: config.idleTimeoutMillis ?? 30000,
+        connectionTimeoutMillis: config.connectionTimeoutMillis ?? 2000,
+        ...config,
+    });
 
-  // Handle pool errors
-  pool.on('error', (err) => {
-    console.error('Unexpected database pool error:', err);
-  });
+    // Handle pool errors
+    pool.on('error', (err) => {
+        console.error('Unexpected database pool error:', err);
+    });
 
-  return {
-    pool,
-    /**
-     * Execute a query
-     */
-    async query<T extends QueryResultRow = any>(text: string, params?: any[]): Promise<QueryResult<T>> {
-      const start = Date.now();
-      try {
-        const result = await pool.query<T>(text, params);
-        const duration = Date.now() - start;
-        
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Query executed:', { text, duration, rows: result.rowCount });
-        }
-        
-        return result;
-      } catch (error) {
-        console.error('Database query error:', { text, error });
-        throw error;
-      }
-    },
-    /**
-     * Close the connection pool
-     */
-    async close(): Promise<void> {
-      await pool.end();
-    },
-  };
+    return {
+        pool,
+        /**
+         * Execute a query
+         */
+        async query<T extends QueryResultRow = any>(text: string, params?: any[]): Promise<QueryResult<T>> {
+            const start = Date.now();
+            try {
+                const result = await pool.query<T>(text, params);
+                const duration = Date.now() - start;
+
+                if (process.env.NODE_ENV === 'development') {
+                    console.log('Query executed:', { text, duration, rows: result.rowCount });
+                }
+
+                return result;
+            } catch (error) {
+                console.error('Database query error:', { text, error });
+                throw error;
+            }
+        },
+        /**
+         * Close the connection pool
+         */
+        async close(): Promise<void> {
+            await pool.end();
+        },
+    };
 }
 
 /**
@@ -78,26 +78,26 @@ export function createDatabasePool(config: DatabaseConfig): DatabasePool {
  * ```
  */
 export async function withTransaction<T>(
-  pool: Pool,
-  callback: TransactionCallback<T>
+    pool: Pool,
+    callback: TransactionCallback<T>
 ): Promise<T> {
-  const client: PoolClient = await pool.connect();
-  
-  try {
-    await client.query('BEGIN');
-    
-    const result = await callback({
-      query: <R extends QueryResultRow = any>(text: string, params?: any[]) => client.query<R>(text, params),
-    });
-    
-    await client.query('COMMIT');
-    return result;
-  } catch (error) {
-    await client.query('ROLLBACK');
-    throw error;
-  } finally {
-    client.release();
-  }
+    const client: PoolClient = await pool.connect();
+
+    try {
+        await client.query('BEGIN');
+
+        const result = await callback({
+            query: <R extends QueryResultRow = any>(text: string, params?: any[]) => client.query<R>(text, params),
+        });
+
+        await client.query('COMMIT');
+        return result;
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    } finally {
+        client.release();
+    }
 }
 
 /**
@@ -113,13 +113,13 @@ export async function withTransaction<T>(
  * ```
  */
 export async function testConnection(pool: Pool): Promise<boolean> {
-  try {
-    const result = await pool.query('SELECT NOW()');
-    console.log('Database connection successful:', result.rows[0]);
-    return true;
-  } catch (error) {
-    console.error('Database connection failed:', error);
-    return false;
-  }
+    try {
+        const result = await pool.query('SELECT NOW()');
+        console.log('Database connection successful:', result.rows[0]);
+        return true;
+    } catch (error) {
+        console.error('Database connection failed:', error);
+        return false;
+    }
 }
 

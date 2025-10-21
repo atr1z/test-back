@@ -20,9 +20,9 @@ config();
 const databaseUrl = process.env.SHARED_DATABASE_URL;
 
 if (!databaseUrl) {
-  console.error('Error: SHARED_DATABASE_URL environment variable is not set');
-  console.log('Please set SHARED_DATABASE_URL in your .env file');
-  process.exit(1);
+    console.error('Error: SHARED_DATABASE_URL environment variable is not set');
+    console.log('Please set SHARED_DATABASE_URL in your .env file');
+    process.exit(1);
 }
 
 const seedsDir = resolve(__dirname, 'seeds');
@@ -36,17 +36,17 @@ console.log('='.repeat(60));
 console.log('');
 
 runSeeds({
-  databaseUrl,
-  seedsDir,
+    databaseUrl,
+    seedsDir,
 })
-  .then((count) => {
-    console.log('');
-    console.log(`✓ Seeding completed! ${count} file(s) executed.`);
-    process.exit(0);
-  })
-  .catch((error) => {
-    console.error('');
-    console.error('✗ Seeding failed:', error);
-    process.exit(1);
-  });
+    .then((count) => {
+        console.log('');
+        console.log(`✓ Seeding completed! ${count} file(s) executed.`);
+        process.exit(0);
+    })
+    .catch((error) => {
+        console.error('');
+        console.error('✗ Seeding failed:', error);
+        process.exit(1);
+    });
 

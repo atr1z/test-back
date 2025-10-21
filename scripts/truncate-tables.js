@@ -160,10 +160,10 @@ async function truncateAllTables(client) {
 }
 
 /**
- * Clean (truncate all tables) in a database
+ * Truncate all tables in a database
  */
-async function cleanDatabase(dbInfo) {
-  console.log(`\nCleaning database: ${dbInfo.name}`);
+async function truncateDatabaseTables(dbInfo) {
+  console.log(`\nTruncating tables in database: ${dbInfo.name}`);
   console.log('  Description:', dbInfo.description);
   
   // Create a new client connected to the specific database
@@ -181,7 +181,7 @@ async function cleanDatabase(dbInfo) {
     
     const tablesCount = await truncateAllTables(dbClient);
     
-    console.log(`  ✓ Successfully cleaned "${dbInfo.name}"`);
+    console.log(`  ✓ Successfully truncated tables in "${dbInfo.name}"`);
     return tablesCount;
   } catch (error) {
     if (error.code === '3D000') {
@@ -218,9 +218,9 @@ function parseArguments() {
 }
 
 /**
- * Get databases to clean based on argument
+ * Get databases to truncate based on argument
  */
-function getDatabasesToClean(target) {
+function getDatabasesToTruncate(target) {
   if (target === 'all') {
     return Object.values(DATABASE_MAP);
   }
@@ -260,7 +260,7 @@ async function main() {
   console.log('='.repeat(60));
   
   const target = parseArguments();
-  const databases = getDatabasesToClean(target);
+  const databases = getDatabasesToTruncate(target);
   
   showWarning(databases);
   
@@ -286,16 +286,16 @@ async function main() {
     }
     console.log('');
     
-    // Clean databases
+    // Truncate database tables
     let totalTables = 0;
     for (const db of databases) {
-      const tables = await cleanDatabase(db);
+      const tables = await truncateDatabaseTables(db);
       totalTables += tables;
     }
     
     console.log('');
     console.log('='.repeat(60));
-    console.log(`✓ Successfully cleaned ${databases.length} database(s)!`);
+    console.log(`✓ Successfully truncated tables in ${databases.length} database(s)!`);
     console.log(`  Truncated ${totalTables} total table(s)`);
     console.log('='.repeat(60));
     console.log('');
@@ -324,7 +324,7 @@ async function main() {
     
   } catch (error) {
     console.error('');
-    console.error('✗ Error cleaning database:');
+    console.error('✗ Error truncating database tables:');
     console.error(error.message);
     console.error('');
     console.error('Troubleshooting:');

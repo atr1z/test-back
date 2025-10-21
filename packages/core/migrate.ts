@@ -23,9 +23,9 @@ config();
 const databaseUrl = process.env.SHARED_DATABASE_URL;
 
 if (!databaseUrl) {
-  console.error('Error: SHARED_DATABASE_URL environment variable is not set');
-  console.log('Please set SHARED_DATABASE_URL in your .env file');
-  process.exit(1);
+    console.error('Error: SHARED_DATABASE_URL environment variable is not set');
+    console.log('Please set SHARED_DATABASE_URL in your .env file');
+    process.exit(1);
 }
 
 // Parse command line arguments
@@ -43,27 +43,27 @@ console.log(`Database: ${databaseUrl.replace(/:[^:@]+@/, ':****@')}`);
 console.log(`Direction: ${direction}`);
 console.log(`Migrations directory: ${migrationsDir}`);
 if (count) {
-  console.log(`Count: ${count}`);
+    console.log(`Count: ${count}`);
 }
 console.log('='.repeat(60));
 console.log('');
 
 runMigrations({
-  databaseUrl,
-  migrationsDir,
-  direction,
-  count,
-  migrationsTable: 'pgmigrations',
-  schema: 'public',
+    databaseUrl,
+    migrationsDir,
+    direction,
+    count,
+    migrationsTable: 'pgmigrations',
+    schema: 'public',
 })
-  .then(() => {
-    console.log('');
-    console.log('✓ Migration completed successfully!');
-    process.exit(0);
-  })
-  .catch((error) => {
-    console.error('');
-    console.error('✗ Migration failed:', error);
-    process.exit(1);
-  });
+    .then(() => {
+        console.log('');
+        console.log('✓ Migration completed successfully!');
+        process.exit(0);
+    })
+    .catch((error) => {
+        console.error('');
+        console.error('✗ Migration failed:', error);
+        process.exit(1);
+    });
 

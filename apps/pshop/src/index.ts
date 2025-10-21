@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { AtrizApp, loadEnv, getEnv, getEnvAsNumber, logger } from '@atriz/core';
+import { WebService, loadEnv, getEnv, getEnvAsNumber, logger } from '@atriz/core';
 import { setupContainer } from './di';
 import routes from './routes';
 
@@ -10,7 +10,7 @@ loadEnv();
 setupContainer();
 
 // Create app instance
-const app = new AtrizApp({
+const webService = new WebService({
     port: getEnvAsNumber('PORT', 3002),
     env: getEnv('NODE_ENV', 'development'),
     cors: {
@@ -20,13 +20,13 @@ const app = new AtrizApp({
 });
 
 // Add custom middleware
-app.app.use(logger);
+webService.app.use(logger);
 
 // Register routes
-app.app.use('/api', routes());
+webService.app.use('/api', routes());
 
 // Health check
-app.app.get('/health', (req, res) => {
+webService.app.get('/health', (req, res) => {
     res.json({
         status: 'ok',
         service: 'pshop-api',
@@ -36,6 +36,6 @@ app.app.get('/health', (req, res) => {
 });
 
 // Start server
-app.listen(() => {
+webService.listen(() => {
     console.log('🛒 PShop API ready for point of sale operations');
 });

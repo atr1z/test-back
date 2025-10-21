@@ -17,43 +17,43 @@ import { MigrationConfig } from '../types';
  * ```
  */
 export async function runMigrations(config: MigrationConfig): Promise<void> {
-  // Import node-pg-migrate dynamically
-  const migrate = (await import('node-pg-migrate')).default;
+    // Import node-pg-migrate dynamically
+    const migrate = (await import('node-pg-migrate')).default;
 
-  const {
-    databaseUrl,
-    migrationsDir,
-    migrationsTable = 'pgmigrations',
-    schema = 'public',
-    direction = 'up',
-    count,
-  } = config;
+    const {
+        databaseUrl,
+        migrationsDir,
+        migrationsTable = 'pgmigrations',
+        schema = 'public',
+        direction = 'up',
+        count,
+    } = config;
 
-  try {
-    console.log(`Running migrations ${direction}...`);
-    console.log(`Migrations directory: ${migrationsDir}`);
-    
-    await migrate({
-      databaseUrl,
-      dir: resolve(migrationsDir),
-      direction,
-      count,
-      migrationsTable,
-      schema,
-      verbose: true,
-      checkOrder: true,
-      createSchema: true,
-      createMigrationsSchema: true,
-      log: (msg) => {
-        console.log('[Migration]:', msg);
-      },
-    });
+    try {
+        console.log(`Running migrations ${direction}...`);
+        console.log(`Migrations directory: ${migrationsDir}`);
 
-    console.log(`Migrations ${direction} completed successfully!`);
-  } catch (error) {
-    console.error('Migration error:', error);
-    throw error;
-  }
+        await migrate({
+            databaseUrl,
+            dir: resolve(migrationsDir),
+            direction,
+            count,
+            migrationsTable,
+            schema,
+            verbose: true,
+            checkOrder: true,
+            createSchema: true,
+            createMigrationsSchema: true,
+            log: (msg) => {
+                console.log('[Migration]:', msg);
+            },
+        });
+
+        console.log(`Migrations ${direction} completed successfully!`);
+    } catch (error) {
+        console.error('Migration error:', error);
+        throw error;
+    }
 }
 
 /**
@@ -69,32 +69,32 @@ export async function runMigrations(config: MigrationConfig): Promise<void> {
  * ```
  */
 export async function createMigration(
-  name: string,
-  migrationsDir: string
+    name: string,
+    migrationsDir: string
 ): Promise<string> {
-  const migrate = (await import('node-pg-migrate')).default;
+    const migrate = (await import('node-pg-migrate')).default;
 
-  try {
-    console.log(`Creating migration: ${name}`);
-    
-    await migrate({
-      databaseUrl: 'placeholder', // Not needed for create
-      dir: resolve(migrationsDir),
-      direction: 'up',
-      count: 0,
-      createMigrationsSchema: false,
-      noLock: true,
-      ignorePattern: '.*',
-      name,
-    } as any);
+    try {
+        console.log(`Creating migration: ${name}`);
 
-    const migrationPath = `${resolve(migrationsDir)}/${Date.now()}_${name}.sql`;
-    console.log(`Migration created: ${migrationPath}`);
-    return migrationPath;
-  } catch (error) {
-    console.error('Error creating migration:', error);
-    throw error;
-  }
+        await migrate({
+            databaseUrl: 'placeholder', // Not needed for create
+            dir: resolve(migrationsDir),
+            direction: 'up',
+            count: 0,
+            createMigrationsSchema: false,
+            noLock: true,
+            ignorePattern: '.*',
+            name,
+        } as any);
+
+        const migrationPath = `${resolve(migrationsDir)}/${Date.now()}_${name}.sql`;
+        console.log(`Migration created: ${migrationPath}`);
+        return migrationPath;
+    } catch (error) {
+        console.error('Error creating migration:', error);
+        throw error;
+    }
 }
 
 /**
@@ -104,21 +104,21 @@ export async function createMigration(
  * @returns List of migrations with their status
  */
 export async function getMigrationStatus(config: MigrationConfig): Promise<any[]> {
-  const { Pool } = await import('pg');
-  const { databaseUrl, migrationsTable = 'pgmigrations', schema = 'public' } = config;
-  
-  const pool = new Pool({ connectionString: databaseUrl });
-  
-  try {
-    const result = await pool.query(
-      `SELECT * FROM ${schema}.${migrationsTable} ORDER BY run_on DESC`
-    );
-    return result.rows;
-  } catch (error) {
-    console.error('Error fetching migration status:', error);
-    return [];
-  } finally {
-    await pool.end();
-  }
+    const { Pool } = await import('pg');
+    const { databaseUrl, migrationsTable = 'pgmigrations', schema = 'public' } = config;
+
+    const pool = new Pool({ connectionString: databaseUrl });
+
+    try {
+        const result = await pool.query(
+            `SELECT * FROM ${schema}.${migrationsTable} ORDER BY run_on DESC`
+        );
+        return result.rows;
+    } catch (error) {
+        console.error('Error fetching migration status:', error);
+        return [];
+    } finally {
+        await pool.end();
+    }
 }
 

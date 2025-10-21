@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { AtrizApp, loadEnv, getEnv, getEnvAsNumber, logger } from '@atriz/core';
+import { WebService, loadEnv, getEnv, getEnvAsNumber, logger } from '@atriz/core';
 import { setupContainer } from './di';
 import routes from './routes';
 
@@ -10,7 +10,7 @@ loadEnv();
 setupContainer();
 
 // Create app instance
-const app = new AtrizApp({
+const service = new WebService({
     port: getEnvAsNumber('PORT', 3001),
     env: getEnv('NODE_ENV', 'development'),
     cors: {
@@ -20,13 +20,13 @@ const app = new AtrizApp({
 });
 
 // Add custom middleware
-app.app.use(logger);
+service.app.use(logger);
 
 // Register routes
-app.app.use('/api', routes());
+service.app.use('/api', routes());
 
 // Health check
-app.app.get('/health', (req, res) => {
+service.app.get('/health', (req, res) => {
     res.json({
         status: 'ok',
         service: 'mextrack-api',
@@ -36,6 +36,6 @@ app.app.get('/health', (req, res) => {
 });
 
 // Start server
-app.listen(() => {
+service.listen(() => {
     console.log('🚗 Mextrack API ready for fleet tracking');
 });
