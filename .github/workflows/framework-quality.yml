@@ -37,12 +37,20 @@ jobs:
         run: |
           pnpm --filter @atriz/core build
           pnpm --filter @atriz/auth build
+          pnpm --filter @atriz/database build
+          pnpm --filter @atriz/storage build
 
       - name: Test @atriz/core
         run: pnpm --filter @atriz/core test:coverage
 
       - name: Test @atriz/auth
         run: pnpm --filter @atriz/auth test:coverage
+
+      - name: Test @atriz/database
+        run: pnpm --filter @atriz/database test:coverage
+
+      - name: Test @atriz/storage
+        run: pnpm --filter @atriz/storage test:coverage
 
       - name: Check coverage thresholds
         run: |
@@ -75,9 +83,13 @@ jobs:
         run: |
           pnpm --filter @atriz/core lint
           pnpm --filter @atriz/auth lint
+          pnpm --filter @atriz/database lint
+          pnpm --filter @atriz/storage lint
 
       - name: Type check framework packages
         run: |
           pnpm --filter @atriz/core build
           pnpm --filter @atriz/auth build
+          pnpm --filter @atriz/database build
+          pnpm --filter @atriz/storage build
 

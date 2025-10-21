@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import { WebService, loadEnv, getEnv, getEnvAsNumber, logger } from '@atriz/core';
 import { setupContainer } from './di';
+import { setupStorage } from './di/setupStorage';
 import routes from './routes';
 
 // Load environment variables
@@ -8,6 +9,9 @@ loadEnv();
 
 // Setup DI container
 setupContainer();
+
+// Setup storage provider
+setupStorage();
 
 // Create app instance
 const webService = new WebService({

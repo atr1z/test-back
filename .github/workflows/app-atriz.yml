@@ -1,4 +1,4 @@
-name: Atriz Example App
+name: Atriz Api
 
 on:
   push:

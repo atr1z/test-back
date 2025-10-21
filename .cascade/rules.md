@@ -29,7 +29,7 @@ The core framework provides:
 - **BaseController**: Abstract controller class with built-in validation and response helpers
 - **Parameter Validation**: Type-safe validation system (email, password, phone, UUID, etc.)
 - **Middleware**: Async handler, logger, error handling
-- **AtrizApp**: Express application wrapper with security defaults
+- **WebService**: Express application wrapper with security defaults (Helmet, CORS, Compression)
 - **Testing Utilities**: Mock request/response, controller test helpers
 - **Type System**: Shared types for controllers, validation, responses
 
@@ -191,16 +191,21 @@ import {
     ParamDefinition,
     ControllerRequest,
     HttpStatus,
-    AtrizApp,
+    WebService,
+    loadEnv,
+    getEnv,
+    getEnvAsNumber,
     registerSingleton,
     resolve,
 } from '@atriz/core';
 
-// Create an Express app
-const app = new AtrizApp({
-    port: 3000,
-    env: 'development',
-    cors: { origin: 'http://localhost:5173' }
+// Load environment and create a web service
+loadEnv();
+
+const webService = new WebService({
+    port: getEnvAsNumber('PORT', 3000),
+    env: getEnv('NODE_ENV', 'development'),
+    cors: { origin: 'http://localhost:5173', credentials: true }
 });
 
 // Define a controller
@@ -269,7 +274,7 @@ pnpm install
 pnpm build
 
 # Build specific app
-turbo run build --filter=atriz-app
+pnpm build:atriz       # or build:mextrack, build:pshop
 ```
 
 ### Deployment Steps
@@ -291,7 +296,7 @@ turbo run build --filter=atriz-app
 2. **Use environment variables** for all secrets
 3. **Hash passwords** with bcrypt (via `@atriz/auth` PasswordService)
 4. **Validate all input** via `ParamValidator` (built-in SQL injection prevention)
-5. **Use Helmet** for security headers (enabled by default in `AtrizApp`)
+5. **Use Helmet** for security headers (enabled by default in `WebService`)
 6. **JWT tokens** should be stored securely (HttpOnly cookies preferred)
 7. **Rate limit** authentication endpoints (implement in applications)
 8. **Use HTTPS** in production
@@ -507,17 +512,23 @@ The `release.yml` workflow runs on every push to `main`:
 ## Future Enhancements
 
 ### Framework Roadmap (@atriz/core)
-- [ ] Database package (`@atriz/database` with migrations, ORM-agnostic)
+- [ ] Storage package (`@atriz/storage` with S3/Minio support) - **NEXT PRIORITY**
 - [ ] Caching package (`@atriz/cache` with Redis support)
 - [ ] Rate limiting middleware
-- [ ] File upload middleware
+- [ ] File upload middleware (Multer integration)
 - [ ] API documentation generator (OpenAPI/Swagger)
 - [ ] WebSocket support package
-- [ ] WebSocket for live tracking
 - [ ] Queue system package (Bull/BullMQ integration)
 - [ ] Email service package
 - [ ] Logging package (Winston/Pino integration)
 - [ ] Metrics and monitoring package
+
+### Database Package (@atriz/database)
+- [x] Connection management utilities (PostgreSQL)
+- [x] Query execution helpers
+- [ ] Migration support improvements
+- [ ] Multi-database support (MySQL, SQLite)
+- [ ] Connection pooling optimization
 
 ### Framework Features
 - [ ] Role-based access control (RBAC) in controllers

@@ -22,6 +22,7 @@
   "dependencies": {
     "@atriz/core": "workspace:*",
     "@atriz/auth": "workspace:*",
+    "@atriz/storage": "workspace:*",
     "@atriz/database": "workspace:*",
     "express": "^4.18.2",
     "dotenv": "^16.3.1",

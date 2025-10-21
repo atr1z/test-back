@@ -58,7 +58,7 @@ pnpm clean:cache            # Clear Turbo cache
 - **BaseController**: Abstract controller with validation and response helpers
 - **Dependency Injection**: TSyringe-based DI container
 - **ParamValidator**: Built-in parameter validation system
-- **AtrizApp**: Express application wrapper
+- **WebService**: Express application wrapper with security defaults
 - **Middleware**: Async handler, logger, error handling
 - **Testing Utilities**: Mock request/response, controller test helpers
 - **Type System**: Complete TypeScript type definitions
@@ -87,7 +87,7 @@ pnpm clean:cache            # Clear Turbo cache
 packages/core/
 ├── src/
 │   ├── index.ts              # Main exports
-│   ├── app.ts                # AtrizApp class
+│   ├── service.ts            # WebService class
 │   ├── controller/
 │   │   ├── BaseController.ts # Base controller class
 │   │   └── index.ts
@@ -106,13 +106,15 @@ packages/core/
 │   ├── testing/
 │   │   ├── mockRequest.ts    # Mock Express request
 │   │   ├── mockResponse.ts   # Mock Express response
+│   │   ├── controllerTestHelper.ts
 │   │   └── index.ts
 │   ├── types/
 │   │   ├── controller.ts     # Controller types
 │   │   ├── validation.ts     # Validation types
 │   │   └── index.ts
 │   └── utils/
-│       └── env.ts            # Environment utilities
+│       ├── env.ts            # Environment utilities
+│       └── index.ts
 ├── package.json
 ├── tsconfig.json
 └── vitest.config.ts
@@ -316,42 +318,45 @@ export default (): Router => {
 ### Application Entry Point Template
 ```typescript
 import 'reflect-metadata'; // Required for DI
-import { AtrizApp, registerSingleton } from '@atriz/core';
+import { WebService, loadEnv, getEnv, getEnvAsNumber, logger, registerSingleton } from '@atriz/core';
 import { JWTService, PasswordService, AUTH_TOKENS } from '@atriz/auth';
 import { UserService } from './services/UserService';
 import { APP_TOKENS } from './di/tokens';
 import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';
 
+// Load environment variables
+loadEnv();
+
 // Initialize services and register in DI container
-const jwtService = new JWTService(process.env.JWT_SECRET!);
 registerSingleton(AUTH_TOKENS.JWTService, JWTService);
 registerSingleton(AUTH_TOKENS.PasswordService, PasswordService);
 registerSingleton(APP_TOKENS.UserService, UserService);
 
 // Create and configure app
-const app = new AtrizApp({
-  port: Number(process.env.PORT) || 3000,
-  env: process.env.NODE_ENV || 'development',
+const webService = new WebService({
+  port: getEnvAsNumber('PORT', 3000),
+  env: getEnv('NODE_ENV', 'development'),
   cors: {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    origin: getEnv('CORS_ORIGIN', 'http://localhost:5173'),
     credentials: true,
   },
 });
 
+// Add custom middleware
+webService.app.use(logger);
+
 // Register routes
-app.app.use('/api/auth', authRoutes());
-app.app.use('/api/users', userRoutes());
+webService.app.use('/api/auth', authRoutes());
+webService.app.use('/api/users', userRoutes());
 
 // Health check
-app.app.get('/health', (req, res) => {
+webService.app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 // Start server
-app.listen(() => {
-  console.log('✅ Application started successfully');
-});
+webService.listen();
 ```
 
 ## Validation Patterns
@@ -546,13 +551,13 @@ describe('UserService', () => {
 ```typescript
 import { describe, it, expect, beforeAll } from 'vitest';
 import request from 'supertest';
-import { app } from '../src/index';
+import { webService } from '../src/index';
 
 describe('Auth API', () => {
   let authToken: string;
 
   it('should register a new user', async () => {
-    const response = await request(app.app)
+    const response = await request(webService.app)
       .post('/api/auth/register')
       .send({
         email: 'test@example.com',
@@ -568,7 +573,7 @@ describe('Auth API', () => {
   });
 
   it('should access protected route with token', async () => {
-    const response = await request(app.app)
+    const response = await request(webService.app)
       .get('/api/users/me')
       .set('Authorization', `Bearer ${authToken}`);
 
@@ -751,7 +756,7 @@ code .changeset/some-file.md
 - Validate input early (handled automatically by BaseController)
 - Use pagination for large datasets (implement in services)
 - Implement rate limiting (add to application middleware)
-- Compress responses (enabled by default in AtrizApp)
+- Compress responses (enabled by default in WebService)
 
 ### Build & Development
 - Use Turbo cache for faster builds
@@ -771,7 +776,7 @@ code .changeset/some-file.md
 - [ ] Input validation on all endpoints (via defineParams())
 - [ ] SQL injection prevention (built-in with ParamValidator)
 - [ ] XSS prevention (sanitize output in services)
-- [ ] Helmet enabled (default in AtrizApp)
+- [ ] Helmet enabled (default in WebService)
 - [ ] CORS configured properly
 - [ ] Rate limiting on auth endpoints (implement in app)
 - [ ] HTTPS in production
@@ -816,7 +821,7 @@ export abstract class MyAppBaseController<T = any> extends BaseController<T> {
 ### Creating Custom Middleware
 ```typescript
 // Add to your application
-app.app.use((req, res, next) => {
+webService.app.use((req, res, next) => {
   // Custom logging
   console.log(`${req.method} ${req.path}`);
   next();

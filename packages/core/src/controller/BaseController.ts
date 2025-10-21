@@ -236,4 +236,48 @@ export abstract class BaseController<TServices = any> {
         // Default implementation - override in child classes
         return true;
     }
+
+    /**
+     * Get uploaded file from request (single file upload)
+     */
+    protected getFile(fieldName?: string): Express.Multer.File | undefined {
+        if (fieldName) {
+            const files = (this.req as any).files;
+            if (files && files[fieldName] && Array.isArray(files[fieldName])) {
+                return files[fieldName][0];
+            }
+        }
+        return (this.req as any).file;
+    }
+
+    /**
+     * Get multiple uploaded files from request
+     */
+    protected getFiles(fieldName?: string): Express.Multer.File[] {
+        if (fieldName) {
+            const files = (this.req as any).files;
+            return (files?.[fieldName] as Express.Multer.File[]) || [];
+        }
+
+        const files = (this.req as any).files;
+        if (Array.isArray(files)) {
+            return files;
+        }
+        return [];
+    }
+
+    /**
+     * Check if a file was uploaded
+     */
+    protected hasFile(fieldName?: string): boolean {
+        return !!this.getFile(fieldName);
+    }
+
+    /**
+     * Check if files were uploaded
+     */
+    protected hasFiles(fieldName?: string): boolean {
+        const files = this.getFiles(fieldName);
+        return files.length > 0;
+    }
 }
