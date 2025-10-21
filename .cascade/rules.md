@@ -360,69 +360,17 @@ Example: feat(mextrack): add vehicle tracking endpoint
 ### Pull Request Process
 1. Create feature branch from `develop`
 2. Implement changes with tests
-3. **Create changeset** if framework packages changed: `pnpm changeset`
-4. Run linting: `pnpm lint`
-5. Run tests: `pnpm test`
-6. Create PR to `develop`
-7. Request review
-8. Merge after approval
+3. Run linting: `pnpm lint`
+4. Run tests: `pnpm test`
+5. Create PR to `develop`
+6. Request review
+7. Merge after approval
 
-## Versioning & Release Process
+## Versioning
 
-### Overview
-This project uses **Changesets** for automated version management **for internal use only**. Versions are tracked in `package.json` and `CHANGELOG.md` files - packages are NOT published to npm.
+### Version Management
 
-### When to Create a Changeset
-
-Create a changeset when you modify:
-- `@atriz/core` - Core framework
-- `@atriz/auth` - Authentication module
-
-**Do NOT create changesets for**:
-- Application code (`@atriz/website`, `@atriz/mextrack-api`, `@atriz/pshop-api`)
-- Documentation changes only
-- Test-only changes
-- Internal refactoring with no API changes
-
-### Creating a Changeset
-
-```bash
-# After making changes to framework packages
-pnpm changeset
-```
-
-Follow the prompts:
-1. **Select packages**: Choose which framework packages changed
-2. **Version bump type**: 
-   - **Major**: Breaking changes
-   - **Minor**: New features (backwards compatible)
-   - **Patch**: Bug fixes
-3. **Summary**: Write clear, user-facing description
-
-### Changeset Workflow
-
-```bash
-# 1. Make changes to framework package
-# ... code changes ...
-
-# 2. Create changeset
-pnpm changeset
-
-# 3. Commit changeset with code
-git add .
-git commit -m "feat(core): add new feature"
-git push
-
-# 4. Create PR and get it merged to main
-# ... review and merge ...
-
-# 5. Automated Versioning Workflow:
-# - GitHub Action creates "Version Packages" PR
-# - PR updates package.json versions
-# - PR updates CHANGELOG.md files
-# - Merge the "Version Packages" PR
-# - Versions are tracked in git history
-```
+Package versions are manually managed in `package.json` files. Framework packages follow semantic versioning.
 
 ### Semantic Versioning Rules
 
@@ -447,18 +395,24 @@ Follow [Semantic Versioning](https://semver.org/):
 - Internal refactoring
 - Example: `1.2.3 → 1.2.4`
 
-### Changeset Commands
+### What to Version
 
-```bash
-# Create new changeset
-pnpm changeset
+**Framework Packages** (use semantic versioning):
+- `@atriz/core` - Core framework
+- `@atriz/auth` - Authentication module
+- `@atriz/storage` - File storage module
+- `@atriz/database` - Database utilities
 
-# Check changeset status
-pnpm changeset status
+**Applications** (version as needed):
+- `@atriz/website` - Example app
+- `@atriz/mextrack-api` - Mextrack API
+- `@atriz/pshop-api` - PShop API
 
-# Version packages (done by CI)
-pnpm version-packages
-```
+### Best Practices
+
+1. **Update CHANGELOG.md** for framework packages when releasing
+2. **Document breaking changes** clearly
+3. **Keep versions in sync** for interdependent packages
 
 ## CI/CD
 
@@ -466,13 +420,10 @@ pnpm version-packages
 
 We use a **smart monorepo CI/CD strategy** that leverages Turbo:
 
-- **`ci.yml`**: Main CI pipeline - tests, lint, build (all PRs/pushes)
 - **`framework-quality.yml`**: Deep framework testing (90%+ coverage required)
-- **`release.yml`**: Automated versioning and package publishing
 - **`app-atriz.yml`**: Atriz example app CI
 - **`app-mextrack.yml`**: Mextrack-specific CI/CD
 - **`app-pshop.yml`**: PShop-specific CI/CD
-- **`dependency-review.yml`**: Security check for dependencies
 
 **Key Features:**
 - ✅ Only runs affected packages (Turbo smart filtering)
@@ -480,23 +431,6 @@ We use a **smart monorepo CI/CD strategy** that leverages Turbo:
 - ✅ Matrix testing (Node 18.x and 20.x)
 - ✅ Coverage tracking
 - ✅ Dependency security review
-- ✅ Automated versioning with Changesets
-- ✅ Automatic changelog generation
-
-### Version Management Workflow
-
-The `release.yml` workflow runs on every push to `main`:
-
-1. **Detects changesets** in the repository
-2. **Creates/updates "Version Packages" PR** with:
-   - Updated package.json versions
-   - Updated CHANGELOG.md files
-   - Dependency version bumps
-3. **On merge of Version PR**:
-   - Versions are committed to git
-   - Version history is tracked in CHANGELOG.md
-
-**Note**: This is for internal version tracking only. Packages are NOT published to npm.
 
 ### Pre-deployment Checklist
 - [ ] All CI checks pass
