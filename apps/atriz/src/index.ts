@@ -3,6 +3,11 @@ import { WebService, loadEnv, getEnv, getEnvAsNumber, logger } from '@atriz/core
 import { setupContainer } from './di';
 import routes from './routes';
 
+const { version } = require('../package.json');
+
+// Set timezone to UTC for consistent time handling
+process.env.TZ = 'UTC';
+
 // Load environment variables
 loadEnv();
 
@@ -27,7 +32,12 @@ webService.app.use('/api', routes());
 
 // Health check
 webService.app.get('/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+    res.json({
+        status: 'ok',
+        service: 'atriz-api',
+        version,
+        timestamp: new Date().toISOString(),
+    });
 });
 
 // Start server

@@ -222,6 +222,7 @@ CREATE TABLE user_metadata (
   key VARCHAR(100) NOT NULL,
   value JSONB,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(user_id, key)
 );
 
@@ -230,6 +231,21 @@ CREATE INDEX idx_user_metadata_user_id ON user_metadata(user_id);
 -- Add comments
 COMMENT ON TABLE user_metadata IS 'Flexible user metadata storage';
 ```
+
+### Important: UTC Timezone Configuration
+
+**All timestamps are stored and handled in UTC** for consistent time handling across timezones.
+
+The framework automatically:
+- Sets database connection timezone to UTC via `@atriz/database`
+- Sets Node.js process timezone to UTC in all applications
+- Uses `TIMESTAMP WITH TIME ZONE` for all timestamp columns
+
+**Best Practices:**
+- Always use `TIMESTAMP WITH TIME ZONE` instead of `TIMESTAMP`
+- Store all times in UTC (handled automatically)
+- Convert to user timezone only in the frontend/client
+- Use `DEFAULT CURRENT_TIMESTAMP` for automatic UTC timestamps
 
 ### Running Migrations
 

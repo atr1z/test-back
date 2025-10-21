@@ -4,6 +4,11 @@ import { setupContainer } from './di';
 import { setupStorage } from './di/setupStorage';
 import routes from './routes';
 
+const { version } = require('../package.json');
+
+// Set timezone to UTC for consistent time handling
+process.env.TZ = 'UTC';
+
 // Load environment variables
 loadEnv();
 
@@ -34,7 +39,7 @@ webService.app.get('/health', (req, res) => {
     res.json({
         status: 'ok',
         service: 'pshop-api',
-        version: '0.0.0',
+        version,
         timestamp: new Date().toISOString(),
     });
 });

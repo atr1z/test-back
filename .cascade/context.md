@@ -43,10 +43,6 @@ pnpm format                 # Format code
 pnpm format:check           # Check formatting
 pnpm type-check             # TypeScript check
 
-# Versioning (Internal)
-pnpm changeset              # Create a new changeset for version bump
-pnpm version-packages       # Update package versions (automated via CI)
-
 # Maintenance
 pnpm clean                  # Clean all dist folders
 pnpm clean:cache            # Clear Turbo cache
@@ -79,6 +75,20 @@ pnpm clean:cache            # Clear Turbo cache
 - **cors**: CORS middleware
 - **compression**: Response compression
 - **vitest**: Testing framework
+
+## Timezone & Time Handling
+
+**The framework uses UTC for all time operations:**
+- All database timestamps stored in UTC (`TIMESTAMP WITH TIME ZONE`)
+- Node.js process timezone set to UTC in all applications
+- PostgreSQL connections configured to use UTC timezone
+- Frontend/client handles timezone conversion for display
+
+**Why UTC?**
+- Consistent time handling across different timezones
+- Simplified data synchronization across applications
+- Easy conversion to any user timezone on the client side
+- Prevents daylight saving time issues
 
 ## File Structure Patterns
 
@@ -583,117 +593,36 @@ describe('Auth API', () => {
 });
 ```
 
-## Versioning & Release Workflow
+## Versioning
 
-### How Versioning Works
+### Version Management
 
-This project uses **Changesets** for automated version tracking and changelog generation **for internal use only**. Packages are NOT published to npm - versions are tracked in `package.json` and `CHANGELOG.md` files within the repository.
-
-When you make changes to framework packages (`@atriz/core`, `@atriz/auth`), you need to create a changeset.
-
-### Creating a Changeset
-
-After making changes to a framework package:
-
-```bash
-# Create a new changeset
-pnpm changeset
-```
-
-You'll be prompted to:
-1. Select which packages changed (only framework packages)
-2. Choose version bump type (major, minor, patch)
-3. Write a summary of changes
+Package versions are manually managed in each package's `package.json` file. Framework packages (`@atriz/core`, `@atriz/auth`, `@atriz/storage`, `@atriz/database`) follow semantic versioning.
 
 **Version Bump Types (Semantic Versioning):**
 - **Major**: Breaking changes (1.0.0 → 2.0.0)
 - **Minor**: New features, backwards compatible (1.0.0 → 1.1.0)
 - **Patch**: Bug fixes, small updates (1.0.0 → 1.0.1)
 
-### Example Workflow
-
-```bash
-# 1. Make changes to @atriz/core
-# ... edit files ...
-
-# 2. Create changeset
-pnpm changeset
-# → Select: @atriz/core
-# → Type: minor (for new feature)
-# → Summary: "Add file upload validation support"
-
-# 3. Commit everything including the changeset
-git add .
-git commit -m "feat(core): add file upload validation"
-git push
-
-# 4. Create PR and merge to main
-# ... PR review and merge ...
-
-# 5. Automated workflow kicks in:
-# - Creates "Version Packages" PR automatically
-# - Updates versions in package.json
-# - Updates CHANGELOG.md files
-# - When you merge the Version PR, versions are tracked in git
-```
-
 ### What Gets Versioned
 
-**Framework Packages** (versioned automatically):
+**Framework Packages** (follow semver):
 - `@atriz/core` - Main framework
 - `@atriz/auth` - Authentication module
+- `@atriz/storage` - File storage module
+- `@atriz/database` - Database utilities
 
-**Applications** (not versioned, they're private):
+**Applications** (private, version as needed):
 - `@atriz/website` - Example app
 - `@atriz/mextrack-api` - Mextrack API
 - `@atriz/pshop-api` - PShop API
 
-### CI/CD Integration
-
-The `.github/workflows/release.yml` workflow:
-1. Runs on every push to `main`
-2. Checks for changesets
-3. Creates/updates a "Version Packages" PR
-4. When merged, versions are updated in git history
-
 ### Best Practices
 
-1. **Always create changesets** for framework package changes
-2. **One changeset per logical change** - separate bug fixes from features
-3. **Clear summaries** - write user-facing descriptions
-4. **Review version PRs** - check that versions and changelogs look correct
-
-### Commands Reference
-
-```bash
-pnpm changeset              # Create new changeset
-pnpm changeset status       # Check current status
-pnpm version-packages       # Update versions (CI does this)
-```
-
-### Troubleshooting Versioning
-
-**Forgot to add changeset before PR?**
-```bash
-pnpm changeset
-git add .changeset/
-git commit -m "chore: add changeset"
-git push
-```
-
-**Need to edit a changeset?**
-```bash
-# Changesets are markdown files
-ls .changeset/
-# Edit the file directly
-code .changeset/some-file.md
-```
-
-**Version PR has conflicts?**
-1. Check out the version PR branch
-2. Merge main into it
-3. Resolve conflicts in package.json and CHANGELOG.md
-4. Commit and push
+1. **Update CHANGELOG.md** when making significant changes to framework packages
+2. **Use semantic versioning** for framework packages
+3. **Document breaking changes** clearly in CHANGELOG
+4. **Keep package versions in sync** when they depend on each other
 
 ## Troubleshooting Guide
 
