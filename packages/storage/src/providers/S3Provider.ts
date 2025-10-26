@@ -35,7 +35,11 @@ export class S3Provider implements StorageProvider {
     async upload(file: Express.Multer.File, options: UploadOptions = {}): Promise<UploadResult> {
         const bucket = options.bucket || this.config.bucket;
         const key = this.generateKey(file.originalname, options.path);
-        const contentType = options.contentType || file.mimetype || lookup(file.originalname) || 'application/octet-stream';
+        const contentType =
+            options.contentType ||
+            file.mimetype ||
+            lookup(file.originalname) ||
+            'application/octet-stream';
 
         const command = new PutObjectCommand({
             Bucket: bucket,
@@ -191,4 +195,3 @@ export class S3Provider implements StorageProvider {
         return `${basePath}${timestamp}-${random}.${ext}`;
     }
 }
-

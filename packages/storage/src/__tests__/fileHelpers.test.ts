@@ -118,7 +118,11 @@ describe('File Helpers', () => {
         it('should identify document MIME types', () => {
             expect(isDocument('application/pdf')).toBe(true);
             expect(isDocument('application/msword')).toBe(true);
-            expect(isDocument('application/vnd.openxmlformats-officedocument.wordprocessingml.document')).toBe(true);
+            expect(
+                isDocument(
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                )
+            ).toBe(true);
             expect(isDocument('text/plain')).toBe(true);
         });
 
@@ -128,4 +132,3 @@ describe('File Helpers', () => {
         });
     });
 });
-

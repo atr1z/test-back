@@ -26,6 +26,11 @@ export function createDatabasePool(config: DatabaseConfig): DatabasePool {
         ...config,
     });
 
+    // Set timezone to UTC for all connections
+    pool.on('connect', (client) => {
+        client.query('SET TIME ZONE \'UTC\'');
+    });
+
     // Handle pool errors
     pool.on('error', (err) => {
         console.error('Unexpected database pool error:', err);

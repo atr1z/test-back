@@ -19,7 +19,7 @@ export class MinioProvider implements StorageProvider {
 
         this.client = new MinioClient({
             endPoint: url.hostname,
-            port: url.port ? parseInt(url.port) : (url.protocol === 'https:' ? 443 : 9000),
+            port: url.port ? parseInt(url.port) : url.protocol === 'https:' ? 443 : 9000,
             useSSL: url.protocol === 'https:',
             accessKey: config.credentials.accessKeyId,
             secretKey: config.credentials.secretAccessKey,
@@ -33,7 +33,11 @@ export class MinioProvider implements StorageProvider {
     async upload(file: Express.Multer.File, options: UploadOptions = {}): Promise<UploadResult> {
         const bucket = options.bucket || this.config.bucket;
         const key = this.generateKey(file.originalname, options.path);
-        const contentType = options.contentType || file.mimetype || lookup(file.originalname) || 'application/octet-stream';
+        const contentType =
+            options.contentType ||
+            file.mimetype ||
+            lookup(file.originalname) ||
+            'application/octet-stream';
 
         // Ensure bucket exists
         await this.ensureBucket(bucket);
@@ -166,4 +170,3 @@ export class MinioProvider implements StorageProvider {
         return `${basePath}${timestamp}-${random}.${ext}`;
     }
 }
-

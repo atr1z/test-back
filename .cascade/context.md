@@ -43,13 +43,47 @@ pnpm format                 # Format code
 pnpm format:check           # Check formatting
 pnpm type-check             # TypeScript check
 
-# Versioning (Internal)
-pnpm changeset              # Create a new changeset for version bump
-pnpm version-packages       # Update package versions (automated via CI)
-
 # Maintenance
 pnpm clean                  # Clean all dist folders
 pnpm clean:cache            # Clear Turbo cache
+```
+
+### Environment Variables
+
+Required environment variables for applications using all framework packages:
+
+**Core & Auth:**
+```bash
+NODE_ENV=development
+PORT=3000
+CORS_ORIGIN=http://localhost:5173
+JWT_SECRET=your-super-secret-jwt-key-min-32-chars
+JWT_EXPIRES_IN=24h
+```
+
+**Database (@atriz/database):**
+```bash
+DATABASE_URL=postgresql://user:password@localhost:5432/dbname
+DB_POOL_MAX=20
+DB_SSL_ENABLED=false  # Set to true in production
+```
+
+**Storage (@atriz/storage):**
+```bash
+# For Digital Ocean Spaces / AWS S3
+STORAGE_PROVIDER=s3
+DO_SPACES_ENDPOINT=https://nyc3.digitaloceanspaces.com
+DO_SPACES_REGION=nyc3
+DO_SPACES_KEY=your-access-key
+DO_SPACES_SECRET=your-secret-key
+DO_SPACES_BUCKET=your-bucket-name
+
+# OR for local development with Minio
+STORAGE_PROVIDER=minio
+MINIO_ENDPOINT=http://localhost:9000
+MINIO_ACCESS_KEY=minioadmin
+MINIO_SECRET_KEY=minioadmin
+MINIO_BUCKET=uploads
 ```
 
 ## Framework Packages
@@ -69,6 +103,23 @@ pnpm clean:cache            # Clear Turbo cache
 - **Auth Middleware**: Factory for creating auth middleware
 - **DI Tokens**: Injection tokens for services
 
+### @atriz/database (Database Module)
+- **PostgreSQL Connection Pooling**: Efficient database connection management
+- **Transaction Support**: `withTransaction()` helper for atomic operations
+- **Migration Management**: Integration with node-pg-migrate
+- **Seed Utilities**: `runSeeds()` for development and test data
+- **Type Safety**: Full TypeScript support with pg types
+- **No ORM**: Direct SQL control for maximum flexibility
+
+### @atriz/storage (File Storage Module)
+- **Multiple Storage Providers**: S3 (AWS, Digital Ocean Spaces) and Minio support
+- **Upload Middleware**: `uploadSingle()`, `uploadMultiple()`, `uploadFields()`
+- **File Validation**: MIME type, size, and extension validation
+- **Signed URLs**: Generate temporary URLs for private file access
+- **StorageService**: Complete file management API (upload, delete, exists, metadata)
+- **BaseController Integration**: `hasFile()`, `getFile()`, `getFiles()` helpers
+- **Utility Functions**: Filename sanitization, format helpers, type detection
+
 ### External Dependencies
 - **express**: Web framework (v4.18+)
 - **tsyringe**: Dependency injection (v4.8+)
@@ -79,6 +130,27 @@ pnpm clean:cache            # Clear Turbo cache
 - **cors**: CORS middleware
 - **compression**: Response compression
 - **vitest**: Testing framework
+- **pg**: PostgreSQL client for Node.js (v8.11+)
+- **node-pg-migrate**: Database migration tool (v7.0+)
+- **multer**: Middleware for handling file uploads (v1.4+)
+- **@aws-sdk/client-s3**: AWS SDK for S3 operations (v3.478+)
+- **@aws-sdk/s3-request-presigner**: Generate signed URLs for S3 (v3.478+)
+- **minio**: MinIO client for local storage (v7.1+)
+- **mime-types**: MIME type utilities (v2.1+)
+
+## Timezone & Time Handling
+
+**The framework uses UTC for all time operations:**
+- All database timestamps stored in UTC (`TIMESTAMP WITH TIME ZONE`)
+- Node.js process timezone set to UTC in all applications
+- PostgreSQL connections configured to use UTC timezone
+- Frontend/client handles timezone conversion for display
+
+**Why UTC?**
+- Consistent time handling across different timezones
+- Simplified data synchronization across applications
+- Easy conversion to any user timezone on the client side
+- Prevents daylight saving time issues
 
 ## File Structure Patterns
 
@@ -318,19 +390,44 @@ export default (): Router => {
 ### Application Entry Point Template
 ```typescript
 import 'reflect-metadata'; // Required for DI
-import { WebService, loadEnv, getEnv, getEnvAsNumber, logger, registerSingleton } from '@atriz/core';
+import { WebService, loadEnv, getEnv, getEnvAsNumber, logger, registerSingleton, registerInstance } from '@atriz/core';
 import { JWTService, PasswordService, AUTH_TOKENS } from '@atriz/auth';
+import { createDatabasePool } from '@atriz/database';
+import { S3Provider, StorageService, STORAGE_TOKENS } from '@atriz/storage';
 import { UserService } from './services/UserService';
-import { APP_TOKENS } from './di/tokens';
+import { APP_TOKENS, DB_TOKENS } from './di/tokens';
 import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';
 
 // Load environment variables
 loadEnv();
 
-// Initialize services and register in DI container
+// Initialize database connection pool
+const db = createDatabasePool({
+  connectionString: getEnv('DATABASE_URL'),
+  max: getEnvAsNumber('DB_POOL_MAX', 20),
+});
+registerInstance(DB_TOKENS.Database, db);
+
+// Initialize storage provider
+const storageProvider = new S3Provider({
+  provider: 's3',
+  endpoint: getEnv('DO_SPACES_ENDPOINT'),
+  region: getEnv('DO_SPACES_REGION'),
+  bucket: getEnv('DO_SPACES_BUCKET'),
+  credentials: {
+    accessKeyId: getEnv('DO_SPACES_KEY'),
+    secretAccessKey: getEnv('DO_SPACES_SECRET'),
+  },
+});
+registerInstance(STORAGE_TOKENS.Provider, storageProvider);
+registerSingleton(STORAGE_TOKENS.StorageService, StorageService);
+
+// Initialize auth services
 registerSingleton(AUTH_TOKENS.JWTService, JWTService);
 registerSingleton(AUTH_TOKENS.PasswordService, PasswordService);
+
+// Initialize app services
 registerSingleton(APP_TOKENS.UserService, UserService);
 
 // Create and configure app
@@ -355,8 +452,224 @@ webService.app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  console.log('SIGTERM received, closing database connections...');
+  await db.close();
+  process.exit(0);
+});
+
 // Start server
 webService.listen();
+```
+
+### Database Service Template
+```typescript
+import { injectable } from 'tsyringe';
+import { DatabasePool, withTransaction } from '@atriz/database';
+import { DB_TOKENS } from '../di/tokens';
+import { inject } from 'tsyringe';
+
+@injectable()
+export class UserRepository {
+  constructor(
+    @inject(DB_TOKENS.Database) private db: DatabasePool
+  ) {}
+
+  async findById(userId: string) {
+    const result = await this.db.query(
+      'SELECT id, email, name, created_at FROM users WHERE id = $1',
+      [userId]
+    );
+    return result.rows[0] || null;
+  }
+
+  async findByEmail(email: string) {
+    const result = await this.db.query(
+      'SELECT * FROM users WHERE email = $1',
+      [email]
+    );
+    return result.rows[0] || null;
+  }
+
+  async create(data: { email: string; passwordHash: string; name: string }) {
+    const result = await this.db.query(
+      `INSERT INTO users (email, password_hash, name, created_at)
+       VALUES ($1, $2, $3, NOW())
+       RETURNING id, email, name, created_at`,
+      [data.email, data.passwordHash, data.name]
+    );
+    return result.rows[0];
+  }
+
+  async update(userId: string, data: Partial<{ name: string; email: string }>) {
+    const result = await this.db.query(
+      `UPDATE users 
+       SET name = COALESCE($2, name),
+           email = COALESCE($3, email),
+           updated_at = NOW()
+       WHERE id = $1
+       RETURNING id, email, name, updated_at`,
+      [userId, data.name, data.email]
+    );
+    return result.rows[0];
+  }
+
+  async delete(userId: string) {
+    await this.db.query('DELETE FROM users WHERE id = $1', [userId]);
+  }
+
+  // Example with transaction
+  async createUserWithProfile(userData: any, profileData: any) {
+    return withTransaction(this.db.pool, async (client) => {
+      // Insert user
+      const userResult = await client.query(
+        'INSERT INTO users (email, password_hash, name) VALUES ($1, $2, $3) RETURNING id',
+        [userData.email, userData.passwordHash, userData.name]
+      );
+      const userId = userResult.rows[0].id;
+
+      // Insert profile
+      await client.query(
+        'INSERT INTO profiles (user_id, bio, avatar_url) VALUES ($1, $2, $3)',
+        [userId, profileData.bio, profileData.avatarUrl]
+      );
+
+      return userId;
+    });
+  }
+}
+```
+
+### File Upload Controller Template
+```typescript
+import { Response } from 'express';
+import { BaseController, ControllerRequest, ParamDefinition } from '@atriz/core';
+import { StorageService } from '@atriz/storage';
+
+interface Services {
+  storageService: StorageService;
+}
+
+/**
+ * Controller for handling file uploads
+ * Use with uploadSingle middleware in routes
+ */
+export class UploadFileController extends BaseController<Services> {
+  constructor(req: ControllerRequest, res: Response, services: Services) {
+    super(req, res, services);
+    this.requiresAuth = true;
+  }
+
+  protected defineParams(): ParamDefinition[] {
+    return [
+      {
+        name: 'description',
+        type: 'string',
+        required: false,
+        max: 500,
+      },
+      {
+        name: 'isPublic',
+        type: 'boolean',
+        required: false,
+      },
+    ];
+  }
+
+  protected async execute(): Promise<any> {
+    // Check if file was uploaded
+    if (!this.hasFile()) {
+      return this.error('No file uploaded', 400);
+    }
+
+    const file = this.getFile()!;
+    const description = this.getParam<string>('description', '');
+    const isPublic = this.getParam<boolean>('isPublic', false);
+
+    // Upload to storage provider
+    const uploadResult = await this.services!.storageService.uploadFile(file, {
+      path: `uploads/${this.userId}`,
+      acl: isPublic ? 'public-read' : 'private',
+      metadata: {
+        uploadedBy: this.userId!,
+        description,
+        originalName: file.originalname,
+      },
+    });
+
+    // Return file info
+    return this.created({
+      file: {
+        key: uploadResult.key,
+        url: uploadResult.url,
+        size: uploadResult.size,
+        contentType: uploadResult.contentType,
+        description,
+      },
+    });
+  }
+}
+```
+
+### File Upload Route with Validation
+```typescript
+import { Router } from 'express';
+import { uploadSingle, uploadMultiple, uploadFields } from '@atriz/storage';
+import { resolve } from '@atriz/core';
+import { UploadFileController } from '../controllers';
+import { STORAGE_TOKENS } from '@atriz/storage';
+
+export default (): Router => {
+  const router = Router();
+  const storageService = resolve(STORAGE_TOKENS.StorageService);
+
+  // Single file upload with validation
+  router.post(
+    '/upload/image',
+    uploadSingle('image', {
+      maxFileSize: 5 * 1024 * 1024, // 5MB
+      allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
+      allowedExtensions: ['jpg', 'jpeg', 'png', 'webp'],
+    }),
+    (req, res) => {
+      const controller = new UploadFileController(req, res, { storageService });
+      return controller.handle();
+    }
+  );
+
+  // Multiple files upload
+  router.post(
+    '/upload/documents',
+    uploadMultiple('documents', 5, {
+      maxFileSize: 10 * 1024 * 1024, // 10MB
+      allowedMimeTypes: ['application/pdf', 'application/msword'],
+    }),
+    (req, res) => {
+      // Handle multiple files
+      const files = req.files as Express.Multer.File[];
+      // ... process files
+    }
+  );
+
+  // Multiple fields
+  router.post(
+    '/upload/profile',
+    uploadFields([
+      { name: 'avatar', maxCount: 1 },
+      { name: 'photos', maxCount: 5 },
+    ]),
+    (req, res) => {
+      // Access files from different fields
+      const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+      const avatar = files['avatar']?.[0];
+      const photos = files['photos'] || [];
+      // ... process files
+    }
+  );
+
+  return router;
+};
 ```
 
 ## Validation Patterns
@@ -583,117 +896,36 @@ describe('Auth API', () => {
 });
 ```
 
-## Versioning & Release Workflow
+## Versioning
 
-### How Versioning Works
+### Version Management
 
-This project uses **Changesets** for automated version tracking and changelog generation **for internal use only**. Packages are NOT published to npm - versions are tracked in `package.json` and `CHANGELOG.md` files within the repository.
-
-When you make changes to framework packages (`@atriz/core`, `@atriz/auth`), you need to create a changeset.
-
-### Creating a Changeset
-
-After making changes to a framework package:
-
-```bash
-# Create a new changeset
-pnpm changeset
-```
-
-You'll be prompted to:
-1. Select which packages changed (only framework packages)
-2. Choose version bump type (major, minor, patch)
-3. Write a summary of changes
+Package versions are manually managed in each package's `package.json` file. Framework packages (`@atriz/core`, `@atriz/auth`, `@atriz/storage`, `@atriz/database`) follow semantic versioning.
 
 **Version Bump Types (Semantic Versioning):**
 - **Major**: Breaking changes (1.0.0 → 2.0.0)
 - **Minor**: New features, backwards compatible (1.0.0 → 1.1.0)
 - **Patch**: Bug fixes, small updates (1.0.0 → 1.0.1)
 
-### Example Workflow
-
-```bash
-# 1. Make changes to @atriz/core
-# ... edit files ...
-
-# 2. Create changeset
-pnpm changeset
-# → Select: @atriz/core
-# → Type: minor (for new feature)
-# → Summary: "Add file upload validation support"
-
-# 3. Commit everything including the changeset
-git add .
-git commit -m "feat(core): add file upload validation"
-git push
-
-# 4. Create PR and merge to main
-# ... PR review and merge ...
-
-# 5. Automated workflow kicks in:
-# - Creates "Version Packages" PR automatically
-# - Updates versions in package.json
-# - Updates CHANGELOG.md files
-# - When you merge the Version PR, versions are tracked in git
-```
-
 ### What Gets Versioned
 
-**Framework Packages** (versioned automatically):
+**Framework Packages** (follow semver):
 - `@atriz/core` - Main framework
 - `@atriz/auth` - Authentication module
+- `@atriz/storage` - File storage module
+- `@atriz/database` - Database utilities
 
-**Applications** (not versioned, they're private):
+**Applications** (private, version as needed):
 - `@atriz/website` - Example app
 - `@atriz/mextrack-api` - Mextrack API
 - `@atriz/pshop-api` - PShop API
 
-### CI/CD Integration
-
-The `.github/workflows/release.yml` workflow:
-1. Runs on every push to `main`
-2. Checks for changesets
-3. Creates/updates a "Version Packages" PR
-4. When merged, versions are updated in git history
-
 ### Best Practices
 
-1. **Always create changesets** for framework package changes
-2. **One changeset per logical change** - separate bug fixes from features
-3. **Clear summaries** - write user-facing descriptions
-4. **Review version PRs** - check that versions and changelogs look correct
-
-### Commands Reference
-
-```bash
-pnpm changeset              # Create new changeset
-pnpm changeset status       # Check current status
-pnpm version-packages       # Update versions (CI does this)
-```
-
-### Troubleshooting Versioning
-
-**Forgot to add changeset before PR?**
-```bash
-pnpm changeset
-git add .changeset/
-git commit -m "chore: add changeset"
-git push
-```
-
-**Need to edit a changeset?**
-```bash
-# Changesets are markdown files
-ls .changeset/
-# Edit the file directly
-code .changeset/some-file.md
-```
-
-**Version PR has conflicts?**
-1. Check out the version PR branch
-2. Merge main into it
-3. Resolve conflicts in package.json and CHANGELOG.md
-4. Commit and push
+1. **Update CHANGELOG.md** when making significant changes to framework packages
+2. **Use semantic versioning** for framework packages
+3. **Document breaking changes** clearly in CHANGELOG
+4. **Keep package versions in sync** when they depend on each other
 
 ## Troubleshooting Guide
 
@@ -744,6 +976,36 @@ code .changeset/some-file.md
 2. Change PORT in .env
 3. Check for zombie processes
 
+### Database connection issues
+1. Verify DATABASE_URL is set correctly in .env
+2. Check PostgreSQL is running: `pg_isready`
+3. Test connection: `psql $DATABASE_URL`
+4. Ensure database exists: `createdb your_db_name`
+5. Check connection pool settings (max connections)
+6. Review database logs for connection errors
+
+### Database migrations not running
+1. Check migrations directory path is correct
+2. Ensure node-pg-migrate is installed
+3. Verify DATABASE_URL is accessible
+4. Run migrations manually: `pnpm db:migrate`
+5. Check migration file format and exports
+
+### File upload errors
+1. Check storage provider credentials in .env
+2. Verify bucket/container exists and is accessible
+3. Check file size limits in upload middleware
+4. Ensure MIME types are configured correctly
+5. Test storage provider connection independently
+6. Review multer configuration in routes
+
+### Storage provider connection fails
+1. For S3/DO Spaces: Check endpoint, region, and credentials
+2. For Minio: Ensure Minio server is running locally
+3. Test credentials with AWS CLI or Minio client
+4. Verify bucket permissions and ACL settings
+5. Check network/firewall rules
+
 ## Performance Tips
 
 ### Framework Usage
@@ -757,6 +1019,24 @@ code .changeset/some-file.md
 - Use pagination for large datasets (implement in services)
 - Implement rate limiting (add to application middleware)
 - Compress responses (enabled by default in WebService)
+
+### Database Performance
+- Use connection pooling (default with createDatabasePool)
+- Index frequently queried columns
+- Use transactions for multi-step operations
+- Avoid N+1 queries - use JOINs or batch queries
+- Use EXPLAIN ANALYZE to optimize slow queries
+- Set appropriate pool size based on workload
+- Close connections on app shutdown for graceful cleanup
+
+### Storage Performance
+- Use signed URLs for private files instead of proxying
+- Set appropriate ACLs (public-read for public assets)
+- Implement client-side file validation before upload
+- Use CDN for frequently accessed files
+- Store file metadata in database, not in object metadata
+- Clean up orphaned files periodically
+- Consider lazy loading for large file lists
 
 ### Build & Development
 - Use Turbo cache for faster builds
@@ -772,20 +1052,46 @@ code .changeset/some-file.md
 
 ## Security Checklist
 
-- [ ] All secrets in environment variables (JWT_SECRET, etc.)
+### Authentication & Authorization
+- [ ] All secrets in environment variables (JWT_SECRET, DATABASE_URL, etc.)
 - [ ] Input validation on all endpoints (via defineParams())
-- [ ] SQL injection prevention (built-in with ParamValidator)
-- [ ] XSS prevention (sanitize output in services)
+- [ ] HTTPS in production
+- [ ] JWT tokens with reasonable expiration (1-24 hours)
+- [ ] Password hashing with bcrypt (PasswordService)
+- [ ] Strong JWT secrets (long random strings, min 32 chars)
 - [ ] Helmet enabled (default in WebService)
 - [ ] CORS configured properly
 - [ ] Rate limiting on auth endpoints (implement in app)
-- [ ] HTTPS in production
-- [ ] JWT tokens with reasonable expiration
-- [ ] Password hashing with bcrypt (PasswordService)
-- [ ] Regular dependency updates
-- [ ] Strong JWT secrets (long random strings)
-- [ ] Validate file uploads (if using file uploads)
-- [ ] No sensitive data in logs
+
+### Database Security
+- [ ] SQL injection prevention (use parameterized queries, built-in with ParamValidator)
+- [ ] Database credentials in environment variables only
+- [ ] Use least-privilege database users for applications
+- [ ] Enable SSL/TLS for database connections in production
+- [ ] Regular database backups
+- [ ] Sanitize all user input before database queries
+- [ ] Use transactions for critical operations
+- [ ] Never expose raw database errors to clients
+
+### File Upload Security
+- [ ] Validate file types (MIME type and extension)
+- [ ] Enforce file size limits (via upload middleware)
+- [ ] Sanitize filenames (use generateUniqueFilename)
+- [ ] Store files outside web root or use object storage
+- [ ] Use signed URLs for private file access
+- [ ] Scan uploaded files for malware (implement separately)
+- [ ] Set appropriate ACLs (private by default)
+- [ ] Validate image dimensions for image uploads
+- [ ] Implement upload rate limiting per user
+- [ ] Store file metadata in database for access control
+
+### General Security
+- [ ] XSS prevention (sanitize output in services)
+- [ ] Regular dependency updates (pnpm update)
+- [ ] No sensitive data in logs (passwords, tokens, keys)
+- [ ] Environment-specific configurations (.env files)
+- [ ] Implement request timeout limits
+- [ ] Log security events (failed logins, unauthorized access)
 
 ## Framework Development Tips
 
@@ -845,6 +1151,19 @@ webService.app.use((req, res, next) => {
 - [JWT.io](https://jwt.io/)
 - [bcrypt](https://github.com/kelektiv/node.bcrypt.js)
 
+### Database
+- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
+- [node-postgres (pg)](https://node-postgres.com/)
+- [node-pg-migrate](https://salsita.github.io/node-pg-migrate/)
+- [PostgreSQL Tutorial](https://www.postgresqltutorial.com/)
+
+### Storage & File Upload
+- [AWS S3 SDK v3](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-s3/)
+- [Digital Ocean Spaces](https://docs.digitalocean.com/products/spaces/)
+- [MinIO Documentation](https://min.io/docs/minio/linux/index.html)
+- [Multer - File Upload Middleware](https://github.com/expressjs/multer)
+- [MIME Types](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types)
+
 ### Testing
 - [Supertest - HTTP Testing](https://github.com/ladjs/supertest)
 - [Vitest Mocking Guide](https://vitest.dev/guide/mocking.html)
@@ -854,12 +1173,26 @@ webService.app.use((req, res, next) => {
 ## Framework Philosophy
 
 **Atriz Framework** follows these principles:
+
 1. **Framework First**: Build reusable abstractions before application code
 2. **Convention over Configuration**: Sensible defaults, easy to override
 3. **Type Safety**: Full TypeScript support throughout
 4. **Testability**: Built-in testing utilities and DI for easy mocking
 5. **Developer Experience**: Minimize boilerplate, maximize productivity
 6. **Security by Default**: Security features enabled out of the box
+7. **Modular Architecture**: Use only what you need (core, auth, database, storage)
+8. **No ORM Lock-in**: Direct SQL control for database operations
+9. **Cloud-Ready**: Built for modern cloud infrastructure (S3-compatible storage, connection pooling)
+
+### Package Design Principles
+
+**@atriz/core**: Provides the foundation with controllers, validation, DI, and web service setup.
+
+**@atriz/auth**: Adds authentication capabilities without forcing a specific auth strategy.
+
+**@atriz/database**: Database-agnostic abstractions for PostgreSQL with raw SQL access and migration support.
+
+**@atriz/storage**: Cloud storage abstraction supporting multiple providers (S3, Spaces, Minio) with unified API.
 
 ---
 

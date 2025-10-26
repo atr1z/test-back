@@ -26,4 +26,3 @@ export interface UploadField {
     name: string;
     maxCount?: number;
 }
-

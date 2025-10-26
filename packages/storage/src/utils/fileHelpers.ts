@@ -83,4 +83,3 @@ export function isDocument(mimetype: string): boolean {
     ];
     return documentTypes.includes(mimetype);
 }
-

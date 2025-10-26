@@ -46,4 +46,3 @@ export function setupStorage(): void {
 
     console.log(`✅ Storage provider configured: ${provider}`);
 }
-
