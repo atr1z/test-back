@@ -45,4 +45,3 @@ export interface StorageProvider {
      */
     getMetadata(fileKey: string, bucket?: string): Promise<Record<string, any>>;
 }
-

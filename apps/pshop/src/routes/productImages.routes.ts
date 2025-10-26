@@ -17,12 +17,12 @@ export default (): Router => {
     /**
      * POST /api/products/images/upload
      * Upload a single product image
-     * 
+     *
      * Body params:
      * - productId: UUID of the product
      * - isPrimary: Boolean, is this the primary image
      * - description: Optional description
-     * 
+     *
      * File: 'image' field
      */
     router.post(
@@ -41,10 +41,10 @@ export default (): Router => {
     /**
      * POST /api/products/images/upload-multiple
      * Upload multiple product images (max 5)
-     * 
+     *
      * Body params:
      * - productId: UUID of the product
-     * 
+     *
      * Files: 'images' field (multiple)
      */
     router.post(
@@ -64,7 +64,7 @@ export default (): Router => {
     /**
      * DELETE /api/products/images
      * Delete a product image
-     * 
+     *
      * Body params:
      * - imageKey: Storage key of the image to delete
      */
@@ -75,4 +75,3 @@ export default (): Router => {
 
     return router;
 };
-

@@ -63,7 +63,10 @@ export function uploadMultiple(
 /**
  * Upload files from multiple fields
  */
-export function uploadFields(fields: UploadField[], config?: UploadMiddlewareConfig): RequestHandler {
+export function uploadFields(
+    fields: UploadField[],
+    config?: UploadMiddlewareConfig
+): RequestHandler {
     return createUploadMiddleware(config).fields(fields);
 }
 
@@ -73,4 +76,3 @@ export function uploadFields(fields: UploadField[], config?: UploadMiddlewareCon
 export function uploadAny(config?: UploadMiddlewareConfig): RequestHandler {
     return createUploadMiddleware(config).any();
 }
-

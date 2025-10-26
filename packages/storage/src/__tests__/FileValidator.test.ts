@@ -117,11 +117,7 @@ describe('FileValidator', () => {
         });
 
         it('should reject when exceeding max file count', () => {
-            const files = [
-                createMockFile(),
-                createMockFile(),
-                createMockFile(),
-            ];
+            const files = [createMockFile(), createMockFile(), createMockFile()];
             const result = FileValidator.validateFiles(files, {
                 maxFiles: 2,
             });
@@ -145,4 +141,3 @@ describe('FileValidator', () => {
         });
     });
 });
-

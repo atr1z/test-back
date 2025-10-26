@@ -197,4 +197,3 @@ export class DeleteProductImageController extends BaseController<Services> {
         }
     }
 }
-

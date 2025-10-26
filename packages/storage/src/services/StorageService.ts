@@ -9,17 +9,12 @@ import { STORAGE_TOKENS } from '../di/tokens';
  */
 @injectable()
 export class StorageService {
-    constructor(
-        @inject(STORAGE_TOKENS.Provider) private provider: StorageProvider
-    ) { }
+    constructor(@inject(STORAGE_TOKENS.Provider) private provider: StorageProvider) {}
 
     /**
      * Upload a single file
      */
-    async uploadFile(
-        file: Express.Multer.File,
-        options?: UploadOptions
-    ): Promise<UploadResult> {
+    async uploadFile(file: Express.Multer.File, options?: UploadOptions): Promise<UploadResult> {
         return this.provider.upload(file, options);
     }
 
@@ -50,11 +45,7 @@ export class StorageService {
     /**
      * Get a signed URL for temporary access to a private file
      */
-    async getSignedUrl(
-        fileKey: string,
-        expiresIn = 3600,
-        bucket?: string
-    ): Promise<string> {
+    async getSignedUrl(fileKey: string, expiresIn = 3600, bucket?: string): Promise<string> {
         return this.provider.getSignedUrl(fileKey, expiresIn, bucket);
     }
 
@@ -75,11 +66,7 @@ export class StorageService {
     /**
      * Get file metadata
      */
-    async getFileMetadata(
-        fileKey: string,
-        bucket?: string
-    ): Promise<Record<string, any>> {
+    async getFileMetadata(fileKey: string, bucket?: string): Promise<Record<string, any>> {
         return this.provider.getMetadata(fileKey, bucket);
     }
 }
-

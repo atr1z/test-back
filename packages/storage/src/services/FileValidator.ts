@@ -62,9 +62,7 @@ export class FileValidator {
 
         // Check number of files
         if (config.maxFiles && files.length > config.maxFiles) {
-            errors.push(
-                `Too many files (${files.length}). Maximum allowed: ${config.maxFiles}`
-            );
+            errors.push(`Too many files (${files.length}). Maximum allowed: ${config.maxFiles}`);
             return { valid: false, errors };
         }
 
@@ -72,7 +70,9 @@ export class FileValidator {
         files.forEach((file, index) => {
             const result = this.validateFile(file, config);
             if (!result.valid) {
-                errors.push(`File ${index + 1} (${file.originalname}): ${result.errors.join(', ')}`);
+                errors.push(
+                    `File ${index + 1} (${file.originalname}): ${result.errors.join(', ')}`
+                );
             }
         });
 
@@ -92,7 +92,6 @@ export class FileValidator {
         const sizes = ['Bytes', 'KB', 'MB', 'GB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
 
-        return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
     }
 }
-

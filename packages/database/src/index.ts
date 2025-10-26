@@ -29,6 +29,18 @@ export {
     type SeedFunction,
 } from './utils/seed';
 
+// TimescaleDB utilities
+export {
+    enableTimescaleDB,
+    createHypertable,
+    addRetentionPolicy,
+    removeRetentionPolicy,
+    enableCompression,
+    createContinuousAggregate,
+    getHypertableInfo,
+    compressChunks,
+} from './timescale';
+
 // Types
 export type {
     DatabaseConfig,
