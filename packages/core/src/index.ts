@@ -1,4 +1,6 @@
-export * from './service';
+export * from './web-service';
+export * from './web-service-with-realtime';
+export * from './service/index';
 export * from './middleware';
 export * from './types';
 export * from './utils';
@@ -6,3 +8,8 @@ export * from './validators';
 export * from './controller';
 export * from './di';
 export * from './testing';
+export * from './provider';
+export * from './database';
+export * from './repository';
+export * from './model';
+export * from './features';

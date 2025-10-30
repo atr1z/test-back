@@ -4,14 +4,17 @@
  */
 
 export const TOKENS = {
-    // Core tokens
+    // Core services
     Config: Symbol.for('Config'),
     Logger: Symbol.for('Logger'),
 
-    // Add your custom tokens here
-    // Example:
-    // UserService: Symbol.for('UserService'),
-    // EmailService: Symbol.for('EmailService'),
+    // Authentication services
+    JWTService: Symbol.for('JWTService'),
+    PasswordService: Symbol.for('PasswordService'),
+
+    // Storage services
+    StorageProvider: Symbol.for('StorageProvider'),
+    StorageService: Symbol.for('StorageService'),
 } as const;
 
 export type TokenType = (typeof TOKENS)[keyof typeof TOKENS];

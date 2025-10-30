@@ -1,95 +1,111 @@
 name: Framework Quality
 
 on:
-  push:
-    branches: [main, develop]
-    paths:
-      - 'packages/**'
-  pull_request:
-    branches: [main, develop]
-    paths:
-      - 'packages/**'
+    push:
+        branches: [main, develop]
+        paths:
+            - 'packages/**'
+    pull_request:
+        branches: [main, develop]
+        paths:
+            - 'packages/**'
 
 jobs:
-  framework-tests:
-    name: Framework Package Tests
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    framework-tests:
+        name: Framework Package Tests
+        runs-on: ubuntu-latest
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20.x
-          cache: 'pnpm'
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v2
+              with:
+                  version: 9
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20.x
+                  cache: 'pnpm'
 
-      - name: Build framework packages
-        run: |
-          pnpm --filter @atriz/core build
-          pnpm --filter @atriz/auth build
-          pnpm --filter @atriz/database build
-          pnpm --filter @atriz/storage build
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
 
-      - name: Test @atriz/core
-        run: pnpm --filter @atriz/core test:coverage
+            - name: Build core package
+              run: pnpm --filter @atriz/core build
 
-      - name: Test @atriz/auth
-        run: pnpm --filter @atriz/auth test:coverage
+            - name: Test @atriz/core
+              run: pnpm --filter @atriz/core test:coverage
 
-      - name: Test @atriz/database
-        run: pnpm --filter @atriz/database test:coverage
+            - name: Upload coverage reports
+              uses: codecov/codecov-action@v4
+              with:
+                  file: ./packages/core/coverage/lcov.info
+                  flags: core
+                  name: core-coverage
+                  fail_ci_if_error: false
 
-      - name: Test @atriz/storage
-        run: pnpm --filter @atriz/storage test:coverage
+    framework-lint:
+        name: Framework Code Quality
+        runs-on: ubuntu-latest
 
-      - name: Check coverage thresholds
-        run: |
-          echo "Checking coverage thresholds..."
-          # Add coverage threshold checks here if needed
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
 
-  framework-lint:
-    name: Framework Code Quality
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v2
+              with:
+                  version: 9
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20.x
+                  cache: 'pnpm'
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20.x
-          cache: 'pnpm'
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+            - name: Lint core package
+              run: pnpm --filter @atriz/core lint:check
 
-      - name: Lint framework packages
-        run: |
-          pnpm --filter @atriz/core lint
-          pnpm --filter @atriz/auth lint
-          pnpm --filter @atriz/database lint
-          pnpm --filter @atriz/storage lint
+            - name: Type check core package
+              run: pnpm --filter @atriz/core type-check
 
-      - name: Type check framework packages
-        run: |
-          pnpm --filter @atriz/core build
-          pnpm --filter @atriz/auth build
-          pnpm --filter @atriz/database build
-          pnpm --filter @atriz/storage build
+    security-audit:
+        name: Security Audit
+        runs-on: ubuntu-latest
 
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v2
+              with:
+                  version: 9
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20.x
+                  cache: 'pnpm'
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Run security audit
+              run: pnpm audit --audit-level moderate
+
+            - name: Check for known vulnerabilities
+              run: pnpm audit --audit-level high --json > audit-results.json || true
+
+            - name: Upload audit results
+              uses: actions/upload-artifact@v4
+              if: always()
+              with:
+                  name: security-audit-results
+                  path: audit-results.json

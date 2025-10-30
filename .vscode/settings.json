@@ -1,54 +1,8 @@
 {
-  "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "explicit"
-  },
-  "typescript.tsdk": "node_modules/typescript/lib",
-  "typescript.enablePromptUseWorkspaceTsdk": true,
-  "files.exclude": {
-    "**/node_modules": true,
-    "**/dist": true,
-    "**/.turbo": true
-  },
-  "search.exclude": {
-    "**/node_modules": true,
-    "**/dist": true,
-    "**/.turbo": true,
-    "**/pnpm-lock.yaml": true
-  },
-  "typescript.preferences.importModuleSpecifier": "relative",
-  "javascript.preferences.importModuleSpecifier": "relative",
-  "[typescript]": {
-    "editor.defaultFormatter": "vscode.typescript-language-features"
-  },
-  "[javascript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "[json]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "[jsonc]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "sqltools.connections": [
+  "eslint.workingDirectories": [
     {
-      "ssh": "Disabled",
-      "previewLimit": 50,
-      "server": "62.72.0.111",
-      "driver": "PostgreSQL",
-      "name": "core",
-      "connectString": "postgresql://dev:chingonauta@62.72.0.111:5432/atriz_core",
-      "group": "Testing"
-    },
-    {
-      "ssh": "Disabled",
-      "previewLimit": 50,
-      "server": "localhost",
-      "driver": "PostgreSQL",
-      "group": "Testing",
-      "connectString": "postgresql://dev:chingonauta@62.72.0.111:5432/atriz_db",
-      "name": "Atriz"
+      "mode": "auto"
     }
-  ]
+  ],
+  "postman.settings.dotenv-detection-notification-visibility": false
 }

@@ -1,0 +1,783 @@
+---
+description: Add database operations, modifying and create table models, live tracking operations, add new features to database
+alwaysApply: false
+---
+# Database Integration Guide
+
+This guide explains how to use the database integration features in @atriz/core, including repositories, models, migrations, and seeders.
+
+## Overview
+
+The database integration provides:
+
+- **Multi-source Repository Pattern** - Database + Cache + API fallback with DataSource interface
+- **BaseModel Class** - Validation, lifecycle hooks, serialization, and data management
+- **DatabaseService** - Centralized database connection management with singleton pattern
+- **Migration System** - Database schema versioning with node-pg-migrate CLI
+- **Seeder System** - Database seeding with TypeScript support
+- **TimescaleDB Support** - Time-series data management
+- **Transaction Support** - ACID transactions across repositories
+
+## Architecture
+
+### Multi-Database Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    PostgreSQL Server                         │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ┌──────────────────┐        ┌──────────────────┐          │
+│  │   atriz_core     │        │    atriz_db      │          │
+│  │  (Core Package)  │◄──────►│  (Atriz App)     │          │
+│  │                  │        │                  │          │
+│  │  - users         │        │  - user_profiles │          │
+│  │  - auth_tokens   │        │  - app data      │          │
+│  │  - roles         │        └──────────────────┘          │
+│  │  - user_roles    │                                       │
+│  └────────┬─────────┘                                       │
+│           │                                                  │
+│           │         ┌──────────────────┐                    │
+│           ├────────►│  mextrack_db     │                    │
+│           │         │  (Mextrack App)  │                    │
+│           │         │                  │                    │
+│           │         │  - vehicles      │                    │
+│           │         │  - drivers       │                    │
+│           │         └──────────────────┘                    │
+│           │                                                  │
+│           │         ┌──────────────────┐                    │
+│           ├────────►│   pshop_db       │                    │
+│           │         │  (PShop App)     │                    │
+│           │         │                  │                    │
+│           │         │  - products      │                    │
+│           │         │  - orders        │                    │
+│           │         │  - deliveries    │                    │
+│           │         └──────────────────┘                    │
+│           │                                                  │
+│           │         ┌──────────────────┐                    │
+│           └────────►│ atriz_tracking   │                    │
+│                     │ (TimescaleDB)    │                    │
+│                     │                  │                    │
+│                     │ - location_events│ (30 day retention) │
+│                     │ - location_hourly│ (1 year aggregate) │
+│                     └──────────────────┘                    │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Repository Pattern
+
+```
+┌─────────────────────────────────────────────────────┐
+│                  BaseRepository<T>                   │
+│  (Abstract class - extend for your entities)        │
+│  Uses DataSource interface for multi-source access  │
+└─────────────────────┬───────────────────────────────┘
+                      │
+        ┌─────────────┼─────────────┐
+        │             │             │
+        ▼             ▼             ▼
+┌────────────-──┐ ┌───--───────┐ ┌──────────--┐
+│ DatabaseSource│ │CacheSource │ │APISource   │
+│ (Priority 1)  │ │(Priority 2)│ │(Priority 3)│
+│   PRIMARY     │ │  SECONDARY │ │ FALLBACK   │
+│               │ │            │ │            │
+│ - PostgreSQL  │ │ - Redis    │ │ - HTTP     │
+│ - Full CRUD   │ │ - Read-only│ │ - Read     │
+│ - Transactions│ │ - Cache TTL│ │ - Fallback │
+└─────────────-─┘ └──────────--┘ └─────────--─┘
+```
+
+## Quick Start
+
+### 1. Basic Setup
+
+```typescript
+import { DatabaseService, createDatabasePool } from '@atriz/core';
+
+// Create database pools
+const coreDb = createDatabasePool({
+    connectionString: process.env.CORE_DATABASE_URL,
+});
+
+const trackingDb = createDatabasePool({
+    connectionString: process.env.TRACKING_DATABASE_URL,
+});
+
+// Or use DatabaseService for centralized management
+const dbService = DatabaseService.getInstance();
+dbService.registerDatabase('core', {
+    connectionString: process.env.CORE_DATABASE_URL,
+});
+dbService.registerDatabase('tracking', {
+    connectionString: process.env.TRACKING_DATABASE_URL,
+});
+```
+
+### 2. Create a Model
+
+```typescript
+import { BaseModel } from '@atriz/core';
+
+export class User extends BaseModel {
+    id?: string;
+    email: string;
+    name: string;
+    passwordHash: string;
+    role: string;
+    isActive: boolean;
+
+    constructor(data: Partial<User> = {}) {
+        super(data);
+    }
+
+    protected async validate(): Promise<void> {
+        const errors: string[] = [];
+
+        if (!this.email) {
+            errors.push('Email is required');
+        } else if (!this.email.includes('@')) {
+            errors.push('Email must be valid');
+        }
+
+        if (!this.name) {
+            errors.push('Name is required');
+        }
+
+        if (errors.length > 0) {
+            throw new Error(errors.join('; '));
+        }
+    }
+
+    protected async beforeCreate(): Promise<void> {
+        this.isActive = this.isActive ?? true;
+        this.role = this.role ?? 'user';
+        this.created_at = new Date();
+    }
+
+    protected async beforeUpdate(): Promise<void> {
+        this.updated_at = new Date();
+    }
+
+    toJSON(): Record<string, any> {
+        const json = super.toJSON();
+        delete json.passwordHash; // Remove sensitive data
+        return json;
+    }
+}
+```
+
+### 3. Create a Repository
+
+```typescript
+import { BaseRepository, DatabaseSource, CacheSource } from '@atriz/core';
+import { DatabasePool } from '@atriz/core';
+import { User } from './user-model';
+import Redis from 'ioredis';
+
+export class UserRepository extends BaseRepository<User> {
+    constructor(db: DatabasePool, cache?: Redis) {
+        // Create database source (primary)
+        const dbSource = new DatabaseSource<User>(db, {
+            tableName: 'users',
+            primaryKey: 'id',
+            softDelete: true,
+            softDeleteField: 'deleted_at',
+            timestamps: {
+                createdAt: 'created_at',
+                updatedAt: 'updated_at',
+            },
+        });
+
+        // Create cache source (secondary) if Redis is available
+        const fallbackSources = cache
+            ? [
+                  new CacheSource<User>(cache, {
+                      tableName: 'users',
+                      primaryKey: 'id',
+                      cache: { enabled: true, ttl: 300 }, // 5 minutes
+                  }),
+              ]
+            : [];
+
+        super(dbSource, fallbackSources);
+    }
+
+    protected getConfig(): RepositoryConfig {
+        return {
+            tableName: 'users',
+            primaryKey: 'id',
+            softDelete: true,
+            softDeleteField: 'deleted_at',
+            timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
+            cache: { enabled: true, ttl: 300 },
+        };
+    }
+
+    protected toDomain(row: any): User {
+        return new User(row);
+    }
+
+    async findByEmail(email: string): Promise<User | null> {
+        return this.findOne({ where: { email: email.toLowerCase() } });
+    }
+
+    async findActiveUsers(): Promise<User[]> {
+        return this.findAll({
+            where: { is_active: true },
+            orderBy: [{ field: 'created_at', direction: 'DESC' }],
+        });
+    }
+}
+```
+
+### 4. Use in Controllers
+
+```typescript
+import { BaseController } from '@atriz/core';
+import { UserRepository } from './user-repository';
+
+export class GetUserController extends BaseController<{
+    userRepo: UserRepository;
+}> {
+    protected async execute(): Promise<any> {
+        const userId = this.getUrlParam('id');
+        const user = await this.services!.userRepo.findById(userId);
+
+        if (!user) {
+            return this.notFound('User not found');
+        }
+
+        return { user: user.toJSON() };
+    }
+}
+```
+
+## Repository Operations
+
+### Basic CRUD
+
+```typescript
+const userRepo = new UserRepository(db, cache);
+
+// Create
+const user = await userRepo.create({
+    email: 'john@example.com',
+    name: 'John Doe',
+    passwordHash: 'hashed_password',
+    role: 'user',
+});
+
+// Find by ID
+const foundUser = await userRepo.findById('123');
+
+// Find one with filters
+const userByEmail = await userRepo.findByEmail('john@example.com');
+
+// Find all with filters
+const activeUsers = await userRepo.findAll({
+    where: { is_active: true },
+    orderBy: [{ field: 'name', direction: 'ASC' }],
+    limit: 10,
+});
+
+// Paginated results
+const result = await userRepo.findPaginated(
+    { where: { role: 'user' } },
+    { page: 1, perPage: 20 }
+);
+
+// Update
+await userRepo.update('123', { name: 'John Smith' });
+
+// Delete (soft delete if configured)
+await userRepo.delete('123');
+
+// Count
+const userCount = await userRepo.count({ where: { is_active: true } });
+
+// Exists
+const exists = await userRepo.exists('123');
+```
+
+### Transactions
+
+```typescript
+// Single transaction
+await userRepo.withTransaction(async repo => {
+    const user1 = await repo.create({
+        /* ... */
+    });
+    const user2 = await repo.create({
+        /* ... */
+    });
+    return { user1, user2 };
+});
+
+// Manual transaction
+await userRepo.beginTransaction();
+try {
+    await userRepo.create({
+        /* ... */
+    });
+    await userRepo.update('123', {
+        /* ... */
+    });
+    await userRepo.commitTransaction();
+} catch (error) {
+    await userRepo.rollbackTransaction();
+    throw error;
+}
+```
+
+### Raw Queries
+
+```typescript
+// Raw SQL query
+const results = await userRepo.raw('SELECT * FROM users WHERE name ILIKE $1', [
+    '%john%',
+]);
+
+// Complex search
+const searchResults = await userRepo.raw(`
+  SELECT u.*, COUNT(o.id) as order_count
+  FROM users u
+  LEFT JOIN orders o ON u.id = o.user_id
+  WHERE u.is_active = true
+  GROUP BY u.id
+  HAVING COUNT(o.id) > 0
+  ORDER BY order_count DESC
+`);
+```
+
+## Model Features
+
+The `BaseModel` class provides comprehensive functionality for data management, validation, and lifecycle hooks.
+
+### Validation
+
+Models support async validation with error collection:
+
+```typescript
+const user = new User({
+    email: 'invalid-email',
+    name: 'A', // Too short
+});
+
+// Check if valid
+const isValid = await user.isValid();
+console.log(isValid); // false
+
+// Get validation errors
+const errors = await user.getValidationErrors();
+console.log(errors); // ['Email must be valid', 'Name must be at least 2 characters']
+```
+
+### Lifecycle Hooks
+
+The BaseModel provides six lifecycle hooks for data operations:
+
+```typescript
+export class User extends BaseModel {
+    protected async beforeCreate(): Promise<void> {
+        this.passwordHash = await hashPassword(this.passwordHash);
+        this.created_at = new Date();
+    }
+
+    protected async afterCreate(): Promise<void> {
+        await this.sendWelcomeEmail();
+    }
+
+    protected async beforeUpdate(): Promise<void> {
+        this.updated_at = new Date();
+    }
+
+    protected async afterUpdate(): Promise<void> {
+        await this.logUserUpdate();
+    }
+
+    protected async beforeDelete(): Promise<void> {
+        // Cleanup logic before deletion
+    }
+
+    protected async afterDelete(): Promise<void> {
+        // Post-deletion cleanup
+    }
+}
+```
+
+**Available Hooks:**
+- `beforeCreate()` - Called before creating a new record
+- `afterCreate()` - Called after successful creation
+- `beforeUpdate()` - Called before updating a record
+- `afterUpdate()` - Called after successful update
+- `beforeDelete()` - Called before deleting a record
+- `afterDelete()` - Called after successful deletion
+
+### Serialization and Data Management
+
+The BaseModel provides several methods for data handling:
+
+```typescript
+const user = new User({
+    id: '123',
+    email: 'john@example.com',
+    name: 'John Doe',
+    passwordHash: 'secret',
+});
+
+// Serialize to JSON (excludes private fields and undefined values)
+const json = user.toJSON();
+console.log(json); // { id: '123', email: 'john@example.com', name: 'John Doe' }
+
+// Get as plain object (same as toJSON)
+const obj = user.toObject();
+
+// Clone model (creates independent copy)
+const cloned = user.clone();
+
+// Check if model has been modified
+const originalData = user.toJSON();
+user.name = 'Jane Doe';
+const isDirty = user.isDirty(originalData); // true
+
+// Update model (triggers beforeUpdate hook)
+await user.update({ name: 'John Smith' });
+
+// String representation
+const str = user.toString(); // "User({\"id\":\"123\",\"email\":\"john@example.com\",...})"
+```
+
+**Key Features:**
+- Automatic date serialization to ISO strings
+- Excludes private fields (starting with `_`)
+- Excludes undefined values
+- Supports model cloning and dirty checking
+- Provides update method with lifecycle hooks
+
+## Database Service
+
+### Centralized Management
+
+The `DatabaseService` provides a singleton pattern for managing multiple database connections across your application.
+
+```typescript
+import { DatabaseService } from '@atriz/core';
+
+// Get singleton instance
+const dbService = DatabaseService.getInstance();
+
+// Register databases
+dbService.registerDatabase('core', {
+    connectionString: process.env.CORE_DATABASE_URL,
+});
+
+dbService.registerDatabase('tracking', {
+    connectionString: process.env.TRACKING_DATABASE_URL,
+});
+
+dbService.registerDatabase('followsite', {
+    connectionString: process.env.FOLLOWSITE_DATABASE_URL,
+});
+
+// Use databases in repositories
+const coreDb = dbService.getDatabase('core');
+const trackingDb = dbService.getDatabase('tracking');
+
+// Health check all databases
+const health = await dbService.healthCheck();
+console.log(health); 
+// {
+//   core: { healthy: true, lastChecked: '2023-01-01T00:00:00Z' },
+//   tracking: { healthy: true, lastChecked: '2023-01-01T00:00:00Z' }
+// }
+
+// Get connection statistics
+const stats = dbService.getStats();
+console.log(stats); 
+// {
+//   core: { totalCount: 10, idleCount: 8, waitingCount: 0 },
+//   tracking: { totalCount: 5, idleCount: 3, waitingCount: 0 }
+// }
+
+// Close all connections
+await dbService.closeAll();
+```
+
+## Migrations
+
+### CLI Usage
+
+The migration system uses `node-pg-migrate` with a custom CLI script for managing multiple databases.
+
+```bash
+# Create migration
+node scripts/migrate.js create core create_users_table
+node scripts/migrate.js create tracking create_location_events_table
+node scripts/migrate.js create followsite create_vehicles_table
+node scripts/migrate.js create pshop create_products_table
+
+# Run migrations
+node scripts/migrate.js up core
+node scripts/migrate.js up tracking
+node scripts/migrate.js up followsite
+node scripts/migrate.js up pshop
+node scripts/migrate.js up all
+
+# Rollback migrations
+node scripts/migrate.js down core
+node scripts/migrate.js down tracking
+node scripts/migrate.js down all
+
+# Check migration status
+node scripts/migrate.js status core
+node scripts/migrate.js status tracking
+node scripts/migrate.js status all
+```
+
+### Available Databases
+
+- **core** - Core database (auth, users, roles)
+- **tracking** - Tracking database (TimescaleDB for location data)
+- **followsite** - Followsite application database
+- **pshop** - PShop application database
+- **all** - Run command on all configured databases
+
+### Migration Files
+
+Migration files are SQL scripts that define database schema changes. They are automatically numbered and executed in order.
+
+```sql
+-- Example: packages/core/migrations/001_create_users_table.sql
+-- Migration files will be created when database design phase begins
+-- For now, focus on model patterns and repository structure
+```
+
+**Note**: Specific table schemas will be defined during the database design phase. The current focus is on establishing the model and repository patterns.
+
+## Seeders
+
+### CLI Usage
+
+The seeding system supports TypeScript seed files with automatic execution order.
+
+```bash
+# Run seeds
+node scripts/seed.js run core
+node scripts/seed.js run followsite
+node scripts/seed.js run pshop
+node scripts/seed.js run all
+```
+
+### Available Databases
+
+- **core** - Core database (users, roles, auth data)
+- **followsite** - Followsite application data
+- **pshop** - PShop application data
+- **all** - Run seeds on all configured databases
+
+### Seed Files
+
+Seed files are TypeScript modules that export a default function receiving a PostgreSQL Pool.
+
+```typescript
+// packages/core/seeds/001_seed_users.ts
+import { Pool } from 'pg';
+
+export default async (pool: Pool) => {
+    await pool.query(`
+        INSERT INTO users (email, name, password_hash, role) VALUES
+        ('admin@example.com', 'Admin User', '$2b$10$hash', 'admin'),
+        ('user@example.com', 'Regular User', '$2b$10$hash', 'user')
+        ON CONFLICT (email) DO NOTHING
+    `);
+};
+
+// packages/core/seeds/002_seed_roles.ts
+import { Pool } from 'pg';
+
+export default async (pool: Pool) => {
+    await pool.query(`
+        INSERT INTO roles (name, description) VALUES
+        ('admin', 'Administrator role'),
+        ('user', 'Regular user role'),
+        ('moderator', 'Moderator role')
+        ON CONFLICT (name) DO NOTHING
+    `);
+};
+```
+
+## TimescaleDB Integration
+
+### Setup
+
+```typescript
+import {
+    enableTimescaleDB,
+    createHypertable,
+    addRetentionPolicy,
+} from '@atriz/core';
+
+const trackingDb = createDatabasePool({
+    connectionString: process.env.TRACKING_DATABASE_URL,
+});
+
+// Enable TimescaleDB extension
+await enableTimescaleDB(trackingDb.pool);
+
+// Create hypertable
+await createHypertable(
+    trackingDb.pool,
+    'location_events',
+    'timestamp',
+    '1 day'
+);
+
+// Add retention policy
+await addRetentionPolicy(trackingDb.pool, 'location_events', '30 days');
+
+// Enable compression
+await enableCompression(trackingDb.pool, 'location_events', '7 days');
+```
+
+### Location Tracking
+
+```typescript
+import { TrackingService } from '@atriz/core';
+
+const trackingService = new TrackingService(redis, socketIO, trackingDb);
+
+// Publish location update (saves to TimescaleDB)
+await trackingService.publishLocationUpdate('vehicle', 'vehicle-123', {
+    deviceId: 'vehicle-123',
+    userId: 'user-456',
+    latitude: 40.7128,
+    longitude: -74.006,
+    speed: 65,
+    timestamp: new Date(),
+});
+```
+
+## Environment Variables
+
+```bash
+# Core database
+CORE_DATABASE_URL=postgresql://user:password@localhost:5432/atriz_core
+
+# Tracking database (TimescaleDB)
+TRACKING_DATABASE_URL=postgresql://user:password@localhost:5432/atriz_tracking
+
+# App databases
+FOLLOWSITE_DATABASE_URL=postgresql://user:password@localhost:5432/mextrack_db
+PSHOP_DATABASE_URL=postgresql://user:password@localhost:5432/pshop_db
+
+# Redis (for caching)
+REDIS_URL=redis://localhost:6379
+```
+
+## Best Practices
+
+### 1. Repository Design
+
+- ✅ **Single Responsibility** - One repository per entity
+- ✅ **Use Transactions** - For multi-step operations
+- ✅ **Cache Frequently Accessed Data** - With appropriate TTL
+- ✅ **Validate Input** - Use model validation
+- ✅ **Handle Errors Gracefully** - Don't expose internal errors
+
+### 2. Model Design
+
+- ✅ **Override Validation** - Add business rules
+- ✅ **Use Lifecycle Hooks** - For data transformation
+- ✅ **Exclude Sensitive Data** - In toJSON()
+- ✅ **Type Safety** - Use TypeScript interfaces
+
+### 3. Database Design
+
+- ✅ **Use Indexes** - For frequently queried columns
+- ✅ **Soft Delete** - For audit trails
+- ✅ **Timestamps** - Track creation and updates
+- ✅ **Separate Concerns** - Different databases for different purposes
+
+### 4. Performance
+
+- ✅ **Connection Pooling** - Configure appropriate pool sizes
+- ✅ **Query Optimization** - Use EXPLAIN ANALYZE
+- ✅ **Cache Strategy** - Cache read-heavy data
+- ✅ **Pagination** - For large result sets
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Connection Refused**
+    - Check database is running
+    - Verify connection string
+    - Check firewall settings
+
+2. **Migration Errors**
+    - Check migration file syntax
+    - Verify database permissions
+    - Check for conflicting migrations
+
+3. **Cache Issues**
+    - Verify Redis is running
+    - Check cache TTL settings
+    - Monitor cache hit rates
+
+4. **Validation Errors**
+    - Check model validation rules
+    - Verify input data format
+    - Review error messages
+
+### Debug Mode
+
+```typescript
+// Enable query logging
+process.env.NODE_ENV = 'development';
+
+// Check source health
+const health = await userRepo.getHealthStatus();
+console.log(health);
+
+// Monitor cache performance
+const stats = await cache.info();
+console.log(stats);
+```
+
+## Current Implementation Status
+
+### ✅ Completed Features
+
+- **BaseModel Class** - Full implementation with validation, lifecycle hooks, and serialization
+- **Repository Pattern** - Multi-source architecture with DataSource interface
+- **DatabaseService** - Singleton pattern for connection management
+- **Migration System** - CLI scripts for multiple databases
+- **Seeding System** - TypeScript support with automatic execution
+- **Database Pool Management** - PostgreSQL connection pooling
+- **TimescaleDB Support** - Time-series data capabilities
+
+### 🚧 Next Steps (Database Design Phase)
+
+- **Table Schema Design** - Define specific table structures
+- **Migration Files** - Create actual SQL migration files
+- **Seed Data** - Implement seed files with real data
+- **Index Optimization** - Add performance indexes
+- **Data Relationships** - Define foreign keys and constraints
+
+### 📁 Examples
+
+See the `/packages/core/src/examples/` directory for complete working examples:
+
+- `user-model.ts` - Model implementation
+- `user-repository.ts` - Repository implementation  
+- `database-usage.ts` - Complete usage examples
+
+## Support
+
+For issues and questions:
+
+- Check the examples in `/packages/core/src/examples/`
+- Review the type definitions in `/packages/core/src/types/`
+- Test with the provided integration examples
+- Monitor database and cache health in production

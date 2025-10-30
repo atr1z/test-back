@@ -1,2 +1,3 @@
+export * from './param';
 export * from './common';
-export * from './paramValidator';
+export * from './file';

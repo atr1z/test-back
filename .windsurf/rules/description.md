@@ -1,0 +1,269 @@
+---
+trigger: model_decision
+description: To understan what these apps are meant to do. Understand the bussiness rules that should match with technology.
+---
+
+# Atriz Backend - Business Overview
+
+## Project Vision
+
+This project powers the backend infrastructure for a suite of interconnected business products under the Atriz brand. Built on a **unified authentication system**, users gain seamless access to all products with a single account, creating a cohesive ecosystem where data and functionality flow naturally between platforms.
+
+The architecture is designed for growth—additional products can be integrated into the ecosystem without disrupting existing services, ensuring scalability as the business expands.
+
+---
+
+## Products
+
+### 1. Atriz Website (Company Portal)
+
+**Purpose:** The primary touchpoint for customer acquisition and business transactions.
+
+The Atriz Website serves as the company's digital storefront, where potential customers discover products, explore features, and make purchasing decisions. This is a public-facing application focused on conversion and customer engagement.
+
+#### Core Features
+
+- **Product Showcase:** Dynamic catalog displaying all available products with detailed descriptions, pricing, and feature comparisons
+- **Payment Processing:** Secure checkout system for product purchases and subscription management
+- **Subscription Management:** Tiered access plans with automated billing and renewal
+- **Contact Requests:** Lead capture forms with automated routing to sales team
+- **Analytics Dashboard:**
+    - Visitor behavior tracking
+    - Conversion funnel analysis
+    - Revenue metrics and subscription health
+    - Traffic sources and marketing campaign performance
+- **Content Management:** Blog, documentation, and resource center for SEO and customer education
+- **Multi-language Support:** Localized content for different markets
+
+#### Suggested Enhancements
+
+- **Live Chat Integration:** Real-time customer support for pre-sales inquiries
+- **Demo Scheduling:** Automated booking system for product demonstrations
+- **Referral Program:** Track and reward customer referrals with discount codes
+- **Price Calculator:** Interactive tool to estimate costs based on user needs
+- **Customer Testimonials:** Automated collection and display of reviews
+- **Email Campaigns:** Newsletter subscription and automated drip campaigns
+- **A/B Testing Framework:** Test different landing pages and CTAs for optimization
+
+**Technical Note:** No authentication required for public pages. Analytics focus with lightweight real-time data collection.
+
+---
+
+### 2. Followsite (Fleet Tracking Platform)
+
+**Purpose:** Professional GPS fleet management and workforce coordination system.
+
+Followsite transforms GPS data into actionable business intelligence, helping companies optimize logistics, improve driver safety, and reduce operational costs. This product targets businesses with delivery fleets, security patrols, or mobile workforce needs.
+
+#### Core Features
+
+**Authentication & Access Control**
+
+- Role-based permissions (Administrator, Manager, Driver, Security Guard)
+- Multi-tenant architecture for managing multiple client accounts
+- Session management with device tracking
+
+**Real-Time Vehicle Tracking**
+
+- Live GPS positioning with live sockets
+- Interactive map interface with vehicle clustering
+- Historical playback of routes with speed visualization
+- Geofencing alerts (entry/exit notifications for defined areas)
+- Multi-vehicle simultaneous tracking
+
+**Sensor Integration & Telemetry**
+
+- Engine diagnostics (RPM, temperature, battery voltage)
+- Fuel consumption monitoring with theft detection
+- Door/cargo sensors for security
+- Temperature sensors for refrigerated transport
+- Custom sensor support via API
+
+**Route Management System**
+
+- Pre-defined route creation with waypoints
+- Schedule assignment (specific drivers, days, time windows)
+- Route optimization based on traffic and distance
+- Driver controls: Start, Pause, Resume, Cancel route
+- Real-time deviation alerts
+- Proof of delivery checkpoints
+
+**Performance Analytics**
+
+- Route completion rates and punctuality scores
+- Driver behavior metrics (speeding, harsh braking, idling time)
+- Fuel efficiency reports per vehicle/driver
+- Route difficulty analysis (average completion time, delays)
+- Comparative performance dashboards
+- Predictive maintenance alerts based on mileage/engine hours
+
+**Emergency & Incident Management**
+
+- Panic button with instant location broadcast
+- Incident reporting system for security personnel
+- Photo/video attachment support for incident documentation
+- Automated alert routing to administrators
+- Incident timeline and resolution tracking
+
+**Workforce Management**
+
+- Employee directory with contact information
+- Shift scheduling and attendance tracking
+- Driver license and certification expiration alerts
+- Vehicle-to-driver assignment logs
+- Performance reviews based on metrics
+
+#### Suggested Enhancements
+
+- **Mobile App:** Native iOS/Android apps for drivers with offline capability
+- **Voice Commands:** Hands-free route updates for drivers
+- **AI-Powered Insights:** Machine learning to predict delays and suggest route improvements
+- **Fuel Card Integration:** Automatic fuel purchase reconciliation
+- **Maintenance Scheduling:** Automated service reminders based on mileage/hours
+- **Customer Notifications:** Automated SMS/email updates for deliveries ("Driver 5 minutes away")
+- **Weather Integration:** Real-time weather alerts affecting routes
+- **Video Dashcam Integration:** Cloud storage for dashcam footage linked to incidents
+- **Driver Scorecards:** Gamification with rewards for safe driving
+- **API for Third-Party Integration:** Allow ERP/TMS systems to consume tracking data
+
+**Technical Note:** Heavy use of Socket.io for real-time updates. Redis caching for frequently accessed vehicle positions. PostgreSQL with PostGIS extension for geospatial queries.
+
+---
+
+### 3. PShop (Point of Sale + Delivery)
+
+**Purpose:** Omnichannel commerce platform combining in-store POS with online ordering and tracked delivery.
+
+PShop bridges the gap between traditional retail and e-commerce, offering a complete solution for restaurants, retail stores, and any business that needs both in-person sales and delivery capabilities. The integration with Followsite provides a competitive advantage: real-time delivery tracking that builds customer trust.
+
+#### Core Features
+
+**Inventory Management**
+
+- Real-time stock levels across all sales channels
+- SKU management with variants (size, color, etc.)
+- Automatic low-stock alerts and reorder suggestions
+- Barcode scanning for quick product lookup
+- Batch operations (bulk price updates, stock adjustments)
+- Inventory transfer between locations
+- Waste/shrinkage tracking
+- Supplier management and purchase orders
+
+**In-Store Point of Sale**
+
+- Fast checkout interface optimized for touchscreens
+- Multiple payment methods (cash, card, mobile wallet)
+- Split payments and partial refunds
+- Electronic and printed receipts (email, SMS, print)
+- Customer display screen support
+- Offline mode with automatic sync when online
+- Returns and exchanges processing
+- Cash drawer management with shift reconciliation
+
+**Promotions & Discounts**
+
+- Percentage or fixed-amount discounts
+- Coupon code system with expiration dates
+- Buy-one-get-one (BOGO) and bundle deals
+- Time-based promotions (Happy Hour, Black Friday)
+- Loyalty program with points accumulation
+- Employee discounts with verification
+- Automatic discount application based on rules
+
+**Online Store & E-Commerce**
+
+- Responsive product catalog with search and filters
+- Shopping cart with saved items
+- Customer accounts with order history
+- Guest checkout option
+- Product reviews and ratings
+- Wishlist functionality
+- Stripe payment integration with 3D Secure
+- Order confirmation emails with tracking links
+
+**Delivery Management (Integrated with Followsite)**
+
+- Real-time delivery assignment to drivers
+- Customer-facing tracking page with live map (like UPS/DHL)
+- Estimated arrival time calculations
+- Push notifications for order status changes
+- Delivery photo proof upon completion
+- Route optimization for multiple deliveries
+- Driver earnings calculation (if commission-based)
+
+**Business Intelligence & Analytics**
+
+- Daily/weekly/monthly sales reports
+- Best-selling products and revenue trends
+- Customer lifetime value analysis
+- Profit margin calculations per product
+- Employee performance metrics (sales per hour)
+- Peak hours analysis for staffing optimization
+- Inventory turnover rates
+- Customer segmentation (new, returning, VIP)
+
+**Invoicing & Financial Management**
+
+- Automated invoice generation for B2B sales
+- Tax calculation with customizable rates
+- Integration with accounting software (QuickBooks, Xero)
+- Payment status tracking (paid, pending, overdue)
+- Digital signature capture for delivery confirmation
+- End-of-day reconciliation reports
+
+**Employee Management**
+
+- Role-based access (Cashier, Waiter, Delivery Driver, Store Manager)
+- Clock in/out system with timesheet generation
+- Commission tracking for sales staff
+- Shift scheduling with conflict detection
+- Performance bonuses based on targets
+- Secure PIN or badge login at POS terminals
+
+#### Suggested Enhancements
+
+- **Kitchen Display System (KDS):** For restaurants to manage order preparation
+- **Table Management:** For dine-in restaurants (reservations, table status, wait times)
+- **Customer Loyalty App:** Mobile app for customers to track points, view menu, order ahead
+- **Kiosk Mode:** Self-service ordering for in-store customers
+- **Multi-Location Support:** Central management for chain stores
+- **Vendor Portal:** Suppliers can submit invoices and track payments
+- **AI Demand Forecasting:** Predict inventory needs based on historical data
+- **Dynamic Pricing:** Adjust prices based on demand, time of day, or stock levels
+- **Gift Card System:** Sell, redeem, and track gift card balances
+- **Subscription Boxes:** Recurring orders with automatic delivery
+- **Social Media Integration:** Sync products to Facebook/Instagram Shop
+- **QR Code Ordering:** For restaurants - customers scan QR code at table to order
+- **Driver Performance App:** Dedicated mobile app for delivery personnel with navigation
+- **Review Incentive Program:** Automatic requests for reviews post-purchase with discount rewards
+
+**Technical Note:** Dual database strategy - PostgreSQL for transactional data, Redis for cart sessions. Socket.io for live order updates to kitchen/drivers. Integration with Followsite API for delivery tracking.
+
+---
+
+## Ecosystem Integration
+
+The power of this platform lies in its interconnected nature:
+
+1. **Single Sign-On (SSO):** Users authenticate once and access all products seamlessly
+2. **Cross-Product Data Flow:**
+    - Followsite vehicle data powers PShop delivery tracking
+    - Atriz Website subscriptions unlock premium features in Followsite/PShop
+    - User behavior across all products informs centralized analytics
+3. **Unified Billing:** Single invoice for multiple product subscriptions
+4. **Shared Resources:** Common user profiles, company settings, and support tickets across platforms
+
+---
+
+## For AI Agents
+
+**System Architecture:** Microservices monorepo with shared core authentication (JWT), PostgreSQL databases per product, Redis for caching/sessions, Socket.io for real-time features.
+
+**Key Integration Points:**
+
+- `@atriz/core` provides: Auth middleware, database client, storage, Socket.io config
+- Followsite exposes GPS tracking API consumed by PShop for delivery tracking
+- All products share user database schema from core package
+- Cross-product analytics aggregated via shared event logging system
+
+**Deployment:** Each app runs independently, can scale horizontally, shares environment configuration for database/storage/auth.

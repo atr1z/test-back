@@ -13,11 +13,11 @@ export const loadEnv = (): void => {
 export const getEnv = (key: string, defaultValue?: string): string => {
     const value = process.env[key];
 
-    if (!value && !defaultValue) {
+    if (value === undefined && !defaultValue) {
         throw new Error(`Environment variable ${key} is not set`);
     }
 
-    return value || defaultValue || '';
+    return value !== undefined ? value : defaultValue || '';
 };
 
 /**
@@ -37,7 +37,10 @@ export const getEnvAsNumber = (key: string, defaultValue?: number): number => {
 /**
  * Get environment variable as boolean
  */
-export const getEnvAsBoolean = (key: string, defaultValue?: boolean): boolean => {
+export const getEnvAsBoolean = (
+    key: string,
+    defaultValue?: boolean
+): boolean => {
     const value = getEnv(key, defaultValue?.toString());
     return value === 'true' || value === '1';
 };

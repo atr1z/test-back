@@ -1,4 +1,5 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
+import { CorsOptions } from 'cors';
 
 export interface ControllerRequest extends Request {
     user?: {
@@ -10,14 +11,16 @@ export interface ControllerRequest extends Request {
 
 export interface ResponseData<T = any> {
     success: boolean;
-    data?: T;
-    message?: string;
-    errors?: string[];
-    meta?: {
-        timestamp: string;
-        path: string;
-        [key: string]: any;
-    };
+    data?: T | undefined;
+    message?: string | undefined;
+    errors?: string[] | undefined;
+    meta?:
+        | {
+              timestamp: string;
+              path: string;
+              [key: string]: any;
+          }
+        | undefined;
 }
 
 export enum HttpStatus {
@@ -31,4 +34,24 @@ export enum HttpStatus {
     Conflict = 409,
     UnprocessableEntity = 422,
     InternalServerError = 500,
+}
+
+export interface AppConfig {
+    port: number;
+    env: string;
+    cors?: CorsOptions;
+}
+
+export interface MiddlewareFunction {
+    (req: Request, res: Response, next: NextFunction): void | Promise<void>;
+}
+
+export interface RouteHandler {
+    (req: Request, res: Response, next: NextFunction): void | Promise<void>;
+}
+
+export interface ErrorResponse {
+    message: string;
+    statusCode: number;
+    stack?: string | undefined;
 }

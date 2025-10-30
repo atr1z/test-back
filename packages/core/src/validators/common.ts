@@ -16,7 +16,8 @@ export class CommonValidators {
      * At least 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special char
      */
     static isValidPassword(password: string): boolean {
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*.])/;
+        const passwordRegex =
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*.])/;
         return password.length >= 8 && passwordRegex.test(password);
     }
 
@@ -34,7 +35,17 @@ export class CommonValidators {
     static isValidDate(date: string | Date): boolean {
         try {
             const d = new Date(date);
-            return !isNaN(d.getTime());
+            // Check if the date is valid and not NaN
+            if (isNaN(d.getTime())) return false;
+
+            // For string dates, check if the parsed date matches the input
+            if (typeof date === 'string') {
+                const parsedString = d.toISOString().split('T')[0];
+                const inputString = date.split('T')[0];
+                return parsedString === inputString;
+            }
+
+            return true;
         } catch {
             return false;
         }
@@ -84,7 +95,8 @@ export class CommonValidators {
         return value
             .replace(/[<>]/g, '')
             .replace(/javascript:/gi, '')
-            .replace(/on\w+=/gi, '');
+            .replace(/on\w+=/gi, '')
+            .replace(/["']/g, ''); // Remove both single and double quotes
     }
 
     /**

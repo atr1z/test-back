@@ -38,7 +38,9 @@ export function registerInstance<T>(token: string | symbol, instance: T): void {
 /**
  * Resolve a service from the DI container
  */
-export function resolve<T>(token: string | symbol | (new (...args: any[]) => T)): T {
+export function resolve<T>(
+    token: string | symbol | (new (...args: any[]) => T)
+): T {
     return container.resolve(token as any);
 }
 

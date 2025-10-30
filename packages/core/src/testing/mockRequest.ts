@@ -18,7 +18,9 @@ export interface MockRequestOptions {
 /**
  * Create a mock Express request for testing
  */
-export function createMockRequest(options: MockRequestOptions = {}): ControllerRequest {
+export function createMockRequest(
+    options: MockRequestOptions = {}
+): ControllerRequest {
     const {
         body = {},
         params = {},

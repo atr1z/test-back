@@ -1,13 +1,11 @@
 import { Router } from 'express';
-import authRoutes from './auth.routes';
-import userRoutes from './user.routes';
+import authRoutes from './auth.routes.js';
 
 export default (): Router => {
     const router = Router();
 
     // Mount routes
-    router.use('/auth', authRoutes());
-    router.use('/users', userRoutes());
+    router.use('/auth', authRoutes);
 
     return router;
 };

@@ -1,9 +1,25 @@
 import 'reflect-metadata';
-import { WebService, loadEnv, getEnv, getEnvAsNumber, logger } from '@atriz/core';
-import { setupContainer } from './di';
-import routes from './routes';
+import { Request, Response } from 'express';
+import {
+    WebService,
+    loadEnv,
+    getEnv,
+    getEnvAsNumber,
+    logger,
+} from '@atriz/core';
+import { setupContainer } from './di/index.js';
+import routes from './routes/index.js';
 
-const { version } = require('../package.json');
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const packageJson = JSON.parse(
+    readFileSync(join(__dirname, '../package.json'), 'utf8')
+);
+const { version } = packageJson;
 
 // Set timezone to UTC for consistent time handling
 process.env.TZ = 'UTC';
@@ -16,7 +32,7 @@ setupContainer();
 
 // Create app instance
 const webService = new WebService({
-    port: getEnvAsNumber('PORT', 3000),
+    port: getEnvAsNumber('PORT', 3001),
     env: getEnv('NODE_ENV', 'development'),
     cors: {
         origin: '*',
@@ -28,13 +44,13 @@ const webService = new WebService({
 webService.app.use(logger);
 
 // Register routes
-webService.app.use('/api', routes());
+webService.app.use('/v1', routes());
 
 // Health check
-webService.app.get('/health', (req, res) => {
+webService.app.get('/v1/health', (_req: Request, res: Response) => {
     res.json({
         status: 'ok',
-        service: 'atriz-api',
+        service: 'atriz-backend',
         version,
         timestamp: new Date().toISOString(),
     });

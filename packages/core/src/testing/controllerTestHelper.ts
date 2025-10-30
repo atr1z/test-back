@@ -1,6 +1,6 @@
 import { BaseController } from '../controller';
 import { createMockRequest, MockRequestOptions } from './mockRequest';
-import { createMockResponse, MockResponse } from './mockResponse';
+import { createMockResponse } from './mockResponse';
 import { ControllerRequest, HttpStatus } from '../types';
 import { Response } from 'express';
 
@@ -19,7 +19,11 @@ export class ControllerTestHelper {
      * Execute a controller and return the response
      */
     static async execute<T extends BaseController>(
-        ControllerClass: new (req: ControllerRequest, res: Response, services?: any) => T,
+        ControllerClass: new (
+            req: ControllerRequest,
+            res: Response,
+            services?: any
+        ) => T,
         requestOptions: MockRequestOptions = {},
         services?: any
     ): Promise<ControllerTestResult> {
@@ -51,14 +55,20 @@ export class ControllerTestHelper {
     /**
      * Assert that a response is an error (4xx or 5xx status)
      */
-    static assertError(result: ControllerTestResult, expectedStatus?: HttpStatus): void {
+    static assertError(
+        result: ControllerTestResult,
+        expectedStatus?: HttpStatus
+    ): void {
         if (result.statusCode < 400) {
             throw new Error(
                 `Expected error status (4xx or 5xx), got ${result.statusCode}: ${JSON.stringify(result.body)}`
             );
         }
 
-        if (expectedStatus !== undefined && result.statusCode !== expectedStatus) {
+        if (
+            expectedStatus !== undefined &&
+            result.statusCode !== expectedStatus
+        ) {
             throw new Error(
                 `Expected status ${expectedStatus}, got ${result.statusCode}: ${JSON.stringify(result.body)}`
             );
@@ -68,7 +78,10 @@ export class ControllerTestHelper {
     /**
      * Assert that a response has a specific status code
      */
-    static assertStatus(result: ControllerTestResult, expectedStatus: HttpStatus): void {
+    static assertStatus(
+        result: ControllerTestResult,
+        expectedStatus: HttpStatus
+    ): void {
         if (result.statusCode !== expectedStatus) {
             throw new Error(
                 `Expected status ${expectedStatus}, got ${result.statusCode}: ${JSON.stringify(result.body)}`
@@ -79,7 +92,10 @@ export class ControllerTestHelper {
     /**
      * Assert that response body contains expected data
      */
-    static assertBodyContains(result: ControllerTestResult, expectedData: Partial<any>): void {
+    static assertBodyContains(
+        result: ControllerTestResult,
+        expectedData: Partial<any>
+    ): void {
         const body = result.body;
 
         for (const [key, value] of Object.entries(expectedData)) {

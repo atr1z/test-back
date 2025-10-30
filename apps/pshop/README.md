@@ -1,61 +1,24 @@
-# PShop API
+# @pshop/core
 
-Point of Sale and inventory management API built with Atriz Framework.
+Pshop package for Atriz backend applications.
 
-## Features (Planned)
+## Overview
 
-### Core Features
-- **Product Management**: CRUD operations for products, categories, variants
-- **Sales Processing**: Complete checkout flow with multiple payment methods
-- **Inventory Management**: Stock tracking, low stock alerts, adjustments
-- **Customer Management**: Customer profiles, purchase history, loyalty
-- **Reporting**: Sales reports, inventory reports, analytics
+This package provides the core functionality for the Pshop application within the Atriz ecosystem.
 
-### Future Features
-- **Payment Integration**: Stripe, PayPal, cash, card
-- **Receipt Generation**: PDF receipts, email receipts
-- **Barcode Support**: Barcode scanning and generation
-- **Multi-location**: Support for multiple store locations
-- **Employee Management**: Staff access, permissions, time tracking
-- **Discounts & Promotions**: Coupons, bulk discounts, loyalty rewards
-- **Tax Calculation**: Automatic tax calculation based on location
-- **Return & Refund**: Complete return/refund workflow
+## Installation
 
-## API Endpoints
+```bash
+pnpm add @pshop/core
+```
 
-### Authentication
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - Login
-- `POST /api/auth/logout` - Logout
-- `GET /api/auth/me` - Get current user
+## Usage
 
-### Products
-- `GET /api/products` - List all products
-- `GET /api/products/:id` - Get product details
-- `POST /api/products` - Create product
-- `PUT /api/products/:id` - Update product
-- `DELETE /api/products/:id` - Delete product
-- `GET /api/products/:id/stock` - Get stock levels
+```typescript
+import { PshopService } from '@pshop/core';
 
-### Sales
-- `GET /api/sales` - List sales
-- `GET /api/sales/:id` - Get sale details
-- `POST /api/sales` - Create sale (checkout)
-- `POST /api/sales/:id/refund` - Process refund
-- `GET /api/sales/daily-summary` - Daily summary
-
-### Inventory
-- `GET /api/inventory` - Inventory overview
-- `GET /api/inventory/:productId` - Product inventory
-- `POST /api/inventory/:productId/adjust` - Adjust stock
-- `GET /api/inventory/low-stock` - Low stock alerts
-- `GET /api/inventory/history/:productId` - Movement history
-
-### Future Endpoints
-- Customers: `/api/customers`
-- Reports: `/api/reports`
-- Discounts: `/api/discounts`
-- Categories: `/api/categories`
+// Your implementation here
+```
 
 ## Development
 
@@ -63,29 +26,19 @@ Point of Sale and inventory management API built with Atriz Framework.
 # Install dependencies
 pnpm install
 
-# Start development server
-pnpm dev
-
-# Build
+# Build the package
 pnpm build
+
+# Run in development mode
+pnpm dev
 
 # Run tests
 pnpm test
+
+# Run linting
+pnpm lint
 ```
 
-## Environment Variables
+## License
 
-See `env.example` for required configuration.
-
-## Tech Stack
-
-- **Framework**: Atriz Framework (@atriz/core, @atriz/auth)
-- **Runtime**: Node.js + TypeScript
-- **DI**: TSyringe
-- **Validation**: Built-in ParamValidator
-- **Testing**: Vitest
-
-## Status
-
-🚧 **In Development** - Skeleton structure only, implementation in progress.
-
+UNLICENSED

@@ -1,42 +1,8 @@
-import { Router } from 'express';
-import { resolve } from '@atriz/core';
-import { JWTService, PasswordService, AUTH_TOKENS } from '@atriz/auth';
-import { RegisterController, LoginController, ChangePasswordController } from '../controllers';
+import { Router, type Router as ExpressRouter } from 'express';
+import { Login } from '@atriz/core';
 
-export default (): Router => {
-    const router = Router();
+const router: ExpressRouter = Router();
 
-    // Resolve services from DI container
-    const jwtService = resolve<JWTService>(AUTH_TOKENS.JWTService);
-    const passwordService = resolve<PasswordService>(AUTH_TOKENS.PasswordService);
-    const services = { jwtService, passwordService };
+router.post('/login', (req, res) => new Login(req, res).handle());
 
-    /**
-     * POST /api/auth/register
-     * Register a new user
-     */
-    router.post('/register', (req, res) => {
-        const controller = new RegisterController(req, res, services);
-        return controller.handle();
-    });
-
-    /**
-     * POST /api/auth/login
-     * Login user
-     */
-    router.post('/login', (req, res) => {
-        const controller = new LoginController(req, res, services);
-        return controller.handle();
-    });
-
-    /**
-     * POST /api/auth/change-password
-     * Change user password (requires authentication)
-     */
-    router.post('/change-password', (req, res) => {
-        const controller = new ChangePasswordController(req, res, services);
-        return controller.handle();
-    });
-
-    return router;
-};
+export default router;

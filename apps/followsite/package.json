@@ -1,0 +1,65 @@
+{
+    "name": "@atriz/followsite",
+    "version": "0.0.1",
+    "description": "Atriz Followsite package for Atriz backend applications",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "tsc",
+        "dev": "tsc --watch",
+        "start": "node dist/index.js",
+        "clean": "rm -rf dist",
+        "type-check": "tsc --noEmit",
+        "check-types": "tsc --noEmit",
+        "test": "vitest run",
+        "test:run": "vitest run",
+        "test:coverage": "vitest run --coverage",
+        "test:watch": "vitest --watch",
+        "test:ui": "vitest --ui",
+        "lint": "eslint src --ext .ts,.tsx --fix",
+        "lint:check": "eslint src --ext .ts,.tsx",
+        "format": "prettier --write src/**/*.{ts,tsx,js,jsx,json,md}",
+        "format:check": "prettier --check src/**/*.{ts,tsx,js,jsx,json,md}",
+        "prebuild": "pnpm clean",
+        "postbuild": "echo 'Build completed successfully'",
+        "predev": "echo 'Starting development mode...'",
+        "prestart": "pnpm build",
+        "db:migrate": "node ../../scripts/migrate.mjs up followsite",
+        "db:migrate:up": "node ../../scripts/migrate.mjs up followsite",
+        "db:migrate:down": "node ../../scripts/migrate.mjs down followsite",
+        "db:migrate:status": "node ../../scripts/migrate.mjs status followsite",
+        "db:migrate:create": "node ../../scripts/migrate.mjs create followsite",
+        "db:seed": "node ../../scripts/seed.mjs run followsite",
+        "db:seed:run": "node ../../scripts/seed.mjs run followsite",
+        "db:seed:create": "node ../../scripts/seed.mjs create followsite"
+    },
+    "keywords": [
+        "atriz",
+        "followsite",
+        "atriz",
+        "backend",
+        "typescript"
+    ],
+    "author": "Atriz",
+    "license": "UNLICENSED",
+    "devDependencies": {
+        "@types/node": "*",
+        "@typescript-eslint/eslint-plugin": "*",
+        "@typescript-eslint/parser": "*",
+        "@vitest/coverage-v8": "^2.1.9",
+        "@vitest/ui": "^2.1.9",
+        "eslint": "*",
+        "prettier": "*",
+        "typescript": "*",
+        "vitest": "^2.1.9"
+    },
+    "dependencies": {
+        "@atriz/core": "workspace:*"
+    },
+    "files": [
+        "dist"
+    ],
+    "publishConfig": {
+        "access": "restricted"
+    }
+}
