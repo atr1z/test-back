@@ -47,7 +47,7 @@ webService.app.use(logger);
 webService.app.use('/v1', routes());
 
 // Health check
-webService.app.get('/v1/health', (_req: Request, res: Response) => {
+webService.app.get('/health', (_req: Request, res: Response) => {
     res.json({
         status: 'ok',
         service: 'atriz-backend',
