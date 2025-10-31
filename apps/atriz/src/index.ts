@@ -66,11 +66,3 @@ webService.app.get('/v1/health', (_req: Request, res: Response) => {
 
 // Start server
 webService.listen();
-
-// === TEMPORARY: Heartbeat logging for Dokploy monitoring ===
-// TODO: Remove this after verifying deployment
-setInterval(() => {
-    console.log(
-        `[${new Date().toISOString()}] ✓ Atriz instance is running - Port: ${getEnvAsNumber('PORT', 3001)}`
-    );
-}, 30000); // Log every 30 seconds
