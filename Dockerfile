@@ -3,6 +3,7 @@
 # ===================================
 # APP_NAME: atriz, followsite, or pshop
 # APP_PORT: Port to expose (default: 3001)
+# Updated: 2025-10-30 18:51 - Fixed tsconfig.json caching
 ARG APP_NAME=atriz
 ARG APP_PORT=3001
 
@@ -19,6 +20,7 @@ WORKDIR /app
 # Copy package files
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY turbo.json ./
+COPY tsconfig.json ./
 
 # Copy all workspace packages and apps
 COPY packages ./packages
@@ -44,7 +46,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages ./packages
 COPY --from=deps /app/apps ./apps
-COPY --from=deps /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml /app/turbo.json ./
+COPY --from=deps /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml /app/turbo.json /app/tsconfig.json ./
 
 # Build all packages and the specified app
 RUN pnpm build --filter=@backend/${APP_NAME}
