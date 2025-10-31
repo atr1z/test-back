@@ -50,8 +50,7 @@ scripts/*.mjs
 !scripts/seed.mjs
 
 # Development files
-tsconfig.json
-**/tsconfig.json
+# NOTE: tsconfig.json is needed for build
 vitest.config.ts
 **/vitest.config.ts
 eslint.config.js
