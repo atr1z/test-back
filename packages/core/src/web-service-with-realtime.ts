@@ -103,7 +103,7 @@ export class WebServiceWithRealtime {
     public listen(callback?: () => void): void {
         this.setupErrorHandling();
 
-        this.httpServer.listen(this.config.port, () => {
+        this.httpServer.listen(this.config.port, '0.0.0.0', () => {
             console.log(
                 `🚀 Server running on port ${this.config.port} in ${this.config.env} mode`
             );
