@@ -6,8 +6,8 @@
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "scripts": {
-        "build": "tsc",
-        "dev": "tsc --watch",
+        "build": "tsup",
+        "dev": "tsup --watch",
         "clean": "rm -rf dist",
         "type-check": "tsc --noEmit",
         "test": "vitest run",
@@ -58,6 +58,7 @@
         "eslint": "*",
         "node-pg-migrate": "^8.0.3",
         "prettier": "*",
+        "tsup": "^8.3.5",
         "typescript": "*",
         "vitest": "^2.1.9"
     },
