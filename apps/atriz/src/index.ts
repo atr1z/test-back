@@ -46,14 +46,22 @@ webService.app.use(logger);
 // Register routes
 webService.app.use('/v1', routes());
 
-// Health check
+// Health checks (multiple paths for different tools)
+const healthResponse = {
+    status: 'ok',
+    service: 'atriz-backend',
+    version,
+    timestamp: new Date().toISOString(),
+};
+
+// Root health check (for Docker/Dokploy)
+webService.app.get('/health', (_req: Request, res: Response) => {
+    res.json(healthResponse);
+});
+
+// Versioned health check
 webService.app.get('/v1/health', (_req: Request, res: Response) => {
-    res.json({
-        status: 'ok',
-        service: 'atriz-backend',
-        version,
-        timestamp: new Date().toISOString(),
-    });
+    res.json(healthResponse);
 });
 
 // Start server
