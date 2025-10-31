@@ -26,7 +26,8 @@
         "allowUnusedLabels": false,
         "allowUnreachableCode": false,
         "experimentalDecorators": true,
-        "emitDecoratorMetadata": true
+        "emitDecoratorMetadata": true,
+        "noEmitOnError": false
     },
     "exclude": ["node_modules", "dist"]
 }

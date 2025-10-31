@@ -1,3 +1,3 @@
-export * from './param';
-export * from './common';
-export * from './file';
+export * from './param.js';
+export * from './common.js';
+export * from './file.js';

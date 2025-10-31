@@ -1,5 +1,5 @@
 import { Pool, PoolClient, QueryResult, QueryResultRow } from 'pg';
-import { DatabaseConfig, DatabasePool, TransactionCallback } from './types';
+import { DatabaseConfig, DatabasePool, TransactionCallback } from './types.js';
 
 /**
  * Create a PostgreSQL connection pool

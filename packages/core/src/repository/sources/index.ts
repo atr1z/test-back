@@ -1,2 +1,2 @@
-export * from './database-source';
-export * from './cache-source';
+export * from './database-source.js';
+export * from './cache-source.js';

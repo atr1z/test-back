@@ -1,7 +1,7 @@
 import { Client as MinioClient } from 'minio';
 import { lookup } from 'mime-types';
-import { StorageProvider } from './storage-provider';
-import { StorageConfig, UploadOptions, UploadResult } from '../types';
+import { StorageProvider } from './storage-provider.js';
+import { StorageConfig, UploadOptions, UploadResult } from '../types/index.js';
 
 /**
  * Minio storage provider

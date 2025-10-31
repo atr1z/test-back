@@ -1,5 +1,5 @@
-import Redis from 'ioredis';
-import { BaseDataSource } from '../data-source';
+import type { Redis } from 'ioredis';
+import { BaseDataSource } from '../data-source.js';
 import {
     QueryFilters,
     PaginationOptions,
@@ -8,7 +8,7 @@ import {
     SourceMetadata,
     SourceCapabilities,
     SourcePriority,
-} from '../types';
+} from '../types.js';
 
 /**
  * Redis cache data source

@@ -1,5 +1,5 @@
-import { DatabasePool } from '../../database';
-import { BaseDataSource } from '../data-source';
+import { DatabasePool } from '../../database/index.js';
+import { BaseDataSource } from '../data-source.js';
 import {
     QueryFilters,
     PaginationOptions,
@@ -8,7 +8,7 @@ import {
     SourceMetadata,
     SourceCapabilities,
     SourcePriority,
-} from '../types';
+} from '../types.js';
 
 /**
  * PostgreSQL database data source

@@ -97,9 +97,10 @@ USER atrizuser
 # Expose port (dynamically)
 EXPOSE ${APP_PORT}
 
-# Health check
+# Health check (uses PORT env var at runtime, not APP_PORT build arg)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:${APP_PORT}/v1/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+  CMD node -e "require('http').get('http://127.0.0.1:' + (process.env.PORT || 3001) + '/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-# Start the application (dynamically)
-CMD node apps/${APP_NAME}/dist/index.js
+# Start the application (directly with node - no turbo needed in production)
+# Code is already built in builder stage
+CMD ["sh", "-c", "node apps/${APP_NAME}/dist/index.js"]

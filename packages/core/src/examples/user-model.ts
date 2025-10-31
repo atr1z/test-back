@@ -1,4 +1,4 @@
-import { BaseModel } from '../model';
+import { BaseModel } from '../model/index.js';
 
 /**
  * Example User model

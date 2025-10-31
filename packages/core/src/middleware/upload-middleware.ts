@@ -1,6 +1,6 @@
 import multer from 'multer';
 import { Request, RequestHandler } from 'express';
-import { UploadMiddlewareConfig, UploadField } from '../types';
+import { UploadMiddlewareConfig, UploadField } from '../types/index.js';
 
 /**
  * Create upload middleware with configuration

@@ -1,7 +1,7 @@
 import { injectable, inject } from 'tsyringe';
-import { StorageProvider } from '../provider';
-import { UploadOptions, UploadResult } from '../types';
-import { TOKENS } from '../di/tokens';
+import { StorageProvider } from '../provider/index.js';
+import { UploadOptions, UploadResult } from '../types/index.js';
+import { TOKENS } from '../di/tokens.js';
 
 /**
  * Main storage service

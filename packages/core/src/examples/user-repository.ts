@@ -3,9 +3,9 @@ import {
     DatabaseSource,
     CacheSource,
     RepositoryConfig,
-} from '../repository';
-import { DatabasePool } from '../database';
-import { User } from './user-model';
+} from '../repository/index.js';
+import { DatabasePool } from '../database/index.js';
+import { User } from './user-model.js';
 import Redis from 'ioredis';
 
 /**

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { RouteHandler } from '../types';
+import { RouteHandler } from '../types/index.js';
 
 /**
  * Async handler wrapper to catch errors in async route handlers

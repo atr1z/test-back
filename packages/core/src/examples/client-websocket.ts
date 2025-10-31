@@ -15,7 +15,7 @@ import {
     SocketEvents,
     LocationUpdateEvent,
     AuthenticationResponse,
-} from '../types';
+} from '../types/index.js';
 
 /**
  * WebSocket client for live tracking

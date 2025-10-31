@@ -8,7 +8,7 @@ import {
     isImage,
     isVideo,
     isDocument,
-} from './file-helpers';
+} from './file-helpers.js';
 
 describe('file-helpers', () => {
     describe('generateUniqueFilename', () => {

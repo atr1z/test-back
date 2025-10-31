@@ -1,4 +1,4 @@
-import { BaseController, ParamDefinition } from '../../..';
+import { BaseController, ParamDefinition } from '../../../index.js';
 
 export class Login extends BaseController {
     protected override setup(): Promise<void> {

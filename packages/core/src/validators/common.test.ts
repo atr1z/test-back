@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { CommonValidators } from './common';
+import { CommonValidators } from './common.js';
 
 describe('CommonValidators', () => {
     describe('isValidEmail', () => {

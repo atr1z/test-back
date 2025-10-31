@@ -3,7 +3,7 @@ import {
     DatabaseConfig,
     createDatabasePool,
     testConnection,
-} from '../database';
+} from '../database/index.js';
 
 /**
  * Database service for managing multiple database connections

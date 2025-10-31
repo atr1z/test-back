@@ -1,6 +1,6 @@
 import { Response, NextFunction } from 'express';
-import { JWTService } from '../service/jwt';
-import { AuthRequest } from '../types';
+import { JWTService } from '../service/jwt.js';
+import { AuthRequest } from '../types/index.js';
 
 /**
  * Create authentication middleware

@@ -1,7 +1,7 @@
-import { BaseController } from '../controller';
-import { createMockRequest, MockRequestOptions } from './mockRequest';
-import { createMockResponse } from './mockResponse';
-import { ControllerRequest, HttpStatus } from '../types';
+import { BaseController } from '../controller/index.js';
+import { createMockRequest, MockRequestOptions } from './mockRequest.js';
+import { createMockResponse } from './mockResponse.js';
+import { ControllerRequest, HttpStatus } from '../types/index.js';
 import { Response } from 'express';
 
 export interface ControllerTestResult {

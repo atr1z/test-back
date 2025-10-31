@@ -5,11 +5,11 @@
  * with repositories, models, and the DatabaseService.
  */
 
-import { createDatabasePool } from '../database';
-import { DatabaseService } from '../service/database';
-import { UserRepository } from './user-repository';
-import { User } from './user-model';
-import Redis from 'ioredis';
+import { createDatabasePool } from '../database/index.js';
+import { DatabaseService } from '../service/index.js';
+import { UserRepository } from './user-repository.js';
+import { User } from './user-model.js';
+import Redis from 'ioredis/built/index.js';
 
 /**
  * Example: Basic database setup and usage

@@ -2,7 +2,7 @@ import express, { Application, Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import compression from 'compression';
-import { AppConfig, ErrorResponse } from './types';
+import { AppConfig, ErrorResponse } from './types/index.js';
 
 export class WebService {
     public app: Application;
@@ -65,7 +65,7 @@ export class WebService {
 
     public listen(callback?: () => void): void {
         this.setupErrorHandling();
-        this.app.listen(this.config.port, () => {
+        this.app.listen(this.config.port, '0.0.0.0', () => {
             console.log(
                 `🚀 Server running on port ${this.config.port} in ${this.config.env} mode`
             );

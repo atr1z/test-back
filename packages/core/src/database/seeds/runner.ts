@@ -1,7 +1,7 @@
 import { resolve, join } from 'path';
 import { readdirSync } from 'fs';
 import { Pool } from 'pg';
-import { SeedConfig } from '../types';
+import { SeedConfig } from '../types.js';
 
 /**
  * Run database seed files

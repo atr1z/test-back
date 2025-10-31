@@ -3,8 +3,8 @@ import { createServer, Server as HTTPServer } from 'http';
 import helmet from 'helmet';
 import cors from 'cors';
 import compression from 'compression';
-import { AppConfig, ErrorResponse, RealtimeConfig } from './types';
-import { RealtimeServer } from './service/realtime';
+import { AppConfig, ErrorResponse, RealtimeConfig } from './types/index.js';
+import { RealtimeServer } from './service/realtime.js';
 
 /**
  * Enhanced WebService with WebSocket support
@@ -103,7 +103,7 @@ export class WebServiceWithRealtime {
     public listen(callback?: () => void): void {
         this.setupErrorHandling();
 
-        this.httpServer.listen(this.config.port, () => {
+        this.httpServer.listen(this.config.port, '0.0.0.0', () => {
             console.log(
                 `🚀 Server running on port ${this.config.port} in ${this.config.env} mode`
             );

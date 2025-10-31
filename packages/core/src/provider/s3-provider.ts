@@ -8,8 +8,8 @@ import {
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { lookup } from 'mime-types';
-import { StorageProvider } from './storage-provider';
-import { StorageConfig, UploadOptions, UploadResult } from '../types';
+import { StorageProvider } from './storage-provider.js';
+import { StorageConfig, UploadOptions, UploadResult } from '../types/index.js';
 
 /**
  * S3-compatible storage provider
