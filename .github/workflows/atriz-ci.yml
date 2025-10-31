@@ -58,17 +58,17 @@ jobs:
               run: pnpm build:core
 
             - name: Run type checking
-              run: pnpm check-types --filter=@atriz/core --filter=@atriz/backend
+              run: pnpm check-types --filter=@atriz/core --filter=@backend/atriz
 
             - name: Run linting
-              run: pnpm lint --filter=@atriz/core --filter=@atriz/backend
+              run: pnpm lint --filter=@atriz/core --filter=@backend/atriz
               continue-on-error: true
 
             - name: Run tests
-              run: pnpm --filter @atriz/backend test
+              run: pnpm --filter @backend/atriz test
 
             - name: Run test coverage
-              run: pnpm --filter @atriz/backend test:coverage
+              run: pnpm --filter @backend/atriz test:coverage
 
     build:
         name: Build
@@ -160,8 +160,8 @@ jobs:
               run: pnpm format:check
 
             - name: Run ESLint
-              run: pnpm lint --filter=@atriz/core --filter=@atriz/backend
+              run: pnpm lint --filter=@atriz/core --filter=@backend/atriz
               continue-on-error: true
 
             - name: Check TypeScript types
-              run: pnpm check-types --filter=@atriz/core --filter=@atriz/backend
+              run: pnpm check-types --filter=@atriz/core --filter=@backend/atriz

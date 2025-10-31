@@ -1,5 +1,5 @@
 {
-    "name": "@atriz/followsite",
+    "name": "@backend/followsite",
     "version": "0.0.1",
     "description": "Atriz Followsite package for Atriz backend applications",
     "main": "dist/index.js",

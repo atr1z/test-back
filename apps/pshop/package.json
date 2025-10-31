@@ -1,5 +1,5 @@
 {
-    "name": "@atriz/pshop",
+    "name": "@backend/pshop",
     "version": "1.0.0",
     "description": "Atriz Pshop package for Atriz backend applications",
     "main": "dist/index.js",

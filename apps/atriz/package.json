@@ -1,5 +1,5 @@
 {
-    "name": "@atriz/backend",
+    "name": "@backend/atriz",
     "version": "0.0.1",
     "description": "Atriz package for Atriz backend applications",
     "type": "module",

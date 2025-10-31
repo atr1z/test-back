@@ -12,11 +12,11 @@ The deployment failed because:
 
 This monorepo contains **3 separate applications** that should be deployed as **3 independent instances**:
 
-| Application    | Package Name        | Port | Status         | Description        |
-| -------------- | ------------------- | ---- | -------------- | ------------------ |
-| **Atriz**      | `@atriz/backend`    | 3001 | ✅ Implemented | Main backend API   |
-| **FollowSite** | `@atriz/followsite` | 3002 | 🚧 Placeholder | FollowSite service |
-| **PShop**      | `@atriz/pshop`      | 3003 | 🚧 Placeholder | POS system         |
+| Application    | Package Name          | Port | Status         | Description        |
+| -------------- | --------------------- | ---- | -------------- | ------------------ |
+| **Atriz**      | `@backend/atriz`      | 3001 | ✅ Implemented | Main backend API   |
+| **FollowSite** | `@backend/followsite` | 3002 | 🚧 Placeholder | FollowSite service |
+| **PShop**      | `@backend/pshop`      | 3003 | 🚧 Placeholder | POS system         |
 
 All 3 apps share the same `Dockerfile` but use **build arguments** to specify which app to deploy.
 
@@ -158,7 +158,7 @@ ARG APP_NAME=atriz    # Can be: atriz, followsite, or pshop
 ARG APP_PORT=3001     # Different port for each app
 
 # Builds the specified app
-RUN pnpm build --filter=@atriz/${APP_NAME}
+RUN pnpm build --filter=@backend/${APP_NAME}
 
 # Copies the built app
 COPY --from=builder /app/apps/${APP_NAME}/dist ./apps/${APP_NAME}/dist
@@ -356,11 +356,11 @@ Key: APP_PORT    Value: 3001      (or 3002, or 3003)
 
 ### Build Arguments Summary
 
-| App        | APP_NAME     | APP_PORT | Package Name        |
-| ---------- | ------------ | -------- | ------------------- |
-| Atriz      | `atriz`      | `3001`   | `@atriz/backend`    |
-| FollowSite | `followsite` | `3002`   | `@atriz/followsite` |
-| PShop      | `pshop`      | `3003`   | `@atriz/pshop`      |
+| App        | APP_NAME     | APP_PORT | Package Name          |
+| ---------- | ------------ | -------- | --------------------- |
+| Atriz      | `atriz`      | `3001`   | `@backend/atriz`      |
+| FollowSite | `followsite` | `3002`   | `@backend/followsite` |
+| PShop      | `pshop`      | `3003`   | `@backend/pshop`      |
 
 ### Dokploy Build Configuration (same for all 3 apps)
 

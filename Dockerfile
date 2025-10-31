@@ -47,7 +47,7 @@ COPY --from=deps /app/apps ./apps
 COPY --from=deps /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml /app/turbo.json ./
 
 # Build all packages and the specified app
-RUN pnpm build --filter=@atriz/${APP_NAME}
+RUN pnpm build --filter=@backend/${APP_NAME}
 
 # ===================================
 # Stage 3: Production Runtime
@@ -80,7 +80,7 @@ COPY --from=builder /app/apps/${APP_NAME}/package.json ./apps/${APP_NAME}/
 COPY --from=builder /app/apps/${APP_NAME}/dist ./apps/${APP_NAME}/dist
 
 # Install production dependencies only
-RUN pnpm install --prod --frozen-lockfile --filter=@atriz/${APP_NAME}...
+RUN pnpm install --prod --frozen-lockfile --filter=@backend/${APP_NAME}...
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs && \
