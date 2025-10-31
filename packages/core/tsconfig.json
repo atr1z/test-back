@@ -8,5 +8,11 @@
         "declarationMap": true
     },
     "include": ["src"],
-    "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts", "src/examples/**/*"]
+    "exclude": [
+        "node_modules",
+        "dist",
+        "**/*.test.ts",
+        "**/*.spec.ts",
+        "src/examples/**/*"
+    ]
 }

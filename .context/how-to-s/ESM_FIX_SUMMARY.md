@@ -3,8 +3,9 @@
 ## Problem
 
 The Dokploy deployment was failing with:
+
 ```
-Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/app/packages/core/dist/web-service' 
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/app/packages/core/dist/web-service'
 imported from /app/packages/core/dist/index.js
 ```
 
@@ -15,13 +16,14 @@ imported from /app/packages/core/dist/index.js
 ### 1. Updated TypeScript Configuration (`tsconfig.json`)
 
 **Final working configuration:**
+
 ```json
 {
-  "compilerOptions": {
-    "module": "ESNext",             // ✅ Best for TypeScript compilation
-    "moduleResolution": "bundler",  // ✅ Handles barrel exports well
-    "noEmitOnError": false          // ✅ Generate files despite type errors
-  }
+    "compilerOptions": {
+        "module": "ESNext", // ✅ Best for TypeScript compilation
+        "moduleResolution": "bundler", // ✅ Handles barrel exports well
+        "noEmitOnError": false // ✅ Generate files despite type errors
+    }
 }
 ```
 
@@ -32,12 +34,14 @@ imported from /app/packages/core/dist/index.js
 Updated **~119 import/export statements** in `packages/core/src/`:
 
 **Before**:
+
 ```typescript
 export * from './web-service';
 import { JWTService } from '../service/jwt';
 ```
 
 **After**:
+
 ```typescript
 export * from './web-service.js';
 import { JWTService } from '../service/jwt.js';
@@ -46,9 +50,16 @@ import { JWTService } from '../service/jwt.js';
 ### 3. Excluded Example Files
 
 Updated `packages/core/tsconfig.json` to exclude examples:
+
 ```json
 {
-  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts", "src/examples/**/*"]
+    "exclude": [
+        "node_modules",
+        "dist",
+        "**/*.test.ts",
+        "**/*.spec.ts",
+        "src/examples/**/*"
+    ]
 }
 ```
 
@@ -59,9 +70,9 @@ Updated `packages/core/tsconfig.json` to exclude examples:
 1. **Build Success**: TypeScript compiles and generates `.js` files with proper extensions
 2. **Runtime Success**: App starts and loads all modules correctly
 3. **Import Resolution**: `/app/packages/core/dist/index.js` now contains:
-   ```javascript
-   export * from './web-service.js';  // ✅ Node.js can resolve this!
-   ```
+    ```javascript
+    export * from './web-service.js'; // ✅ Node.js can resolve this!
+    ```
 
 ### Local Test
 
@@ -75,59 +86,64 @@ The error shows the app **successfully loaded all ESM modules** and only failed 
 ## Files Modified
 
 ### Core Changes:
+
 - `/tsconfig.json` - Updated module resolution
 - `/packages/core/tsconfig.json` - Excluded examples
 - `/packages/core/src/index.ts` - Added .js extensions to exports
 
 ### Import/Export Updates in `packages/core/src/`:
+
 - All 18 `index.ts` files (controller, di, database, features, middleware, model, provider, repository, service, testing, types, utils, validators, etc.)
 - Non-index files: controller.ts, all middleware files, all service files, all repository files, validators, database files, auth controllers, etc.
 
 ## Deployment Readiness
 
 ### What's Fixed ✅
+
 - ESM module resolution works correctly
 - All imports use proper `.js` extensions
 - Docker builds will succeed
 - Node.js can start the application
 
 ### Known Fixed Issues
+
 - ✅ Redis TypeScript type errors - **FIXED** by using proper type imports:
-  ```typescript
-  // Before: import Redis from 'ioredis'; (caused type errors)
-  // After:  import { Redis } from 'ioredis'; (works correctly)
-  ```
+    ```typescript
+    // Before: import Redis from 'ioredis'; (caused type errors)
+    // After:  import { Redis } from 'ioredis'; (works correctly)
+    ```
 
 All type errors have been resolved. The codebase now compiles cleanly!
 
 ## Deployment Steps for Dokploy
 
 1. **Commit and push changes**:
-   ```bash
-   git add tsconfig.json packages/core/
-   git commit -m "fix: ESM module resolution for Node.js deployment"
-   git push origin main
-   ```
+
+    ```bash
+    git add tsconfig.json packages/core/
+    git commit -m "fix: ESM module resolution for Node.js deployment"
+    git push origin main
+    ```
 
 2. **Deploy in Dokploy** as per `DEPLOYMENT.md`:
-   - Build Type: **Dockerfile**
-   - Build Args:
-     ```
-     APP_NAME=atriz
-     APP_PORT=3001
-     ```
-   - Environment Variables:
-     ```
-     NODE_ENV=production
-     PORT=3001
-     JWT_SECRET=your-secret-here
-     DATABASE_URL=your-db-url
-     ```
+    - Build Type: **Dockerfile**
+    - Build Args:
+        ```
+        APP_NAME=atriz
+        APP_PORT=3001
+        ```
+    - Environment Variables:
+        ```
+        NODE_ENV=production
+        PORT=3001
+        JWT_SECRET=your-secret-here
+        DATABASE_URL=your-db-url
+        ```
 
-3. **Expected Result**: 
-   - ✅ Docker build completes
-   - ✅ Application starts
-   - ✅ `/v1/health` endpoint responds with 200 OK
+3. **Expected Result**:
+    - ✅ Docker build completes
+    - ✅ Application starts
+    - ✅ `/v1/health` endpoint responds with 200 OK
 
 ## Technical Details
 
@@ -135,22 +151,23 @@ All type errors have been resolved. The codebase now compiles cleanly!
 
 Node.js ESM (ECMAScript Modules) has different resolution rules than bundlers:
 
-| Tool | Requires `.js` in imports? |
-|------|---------------------------|
-| Webpack, Vite, Rollup | ❌ No (resolves automatically) |
-| Node.js ESM | ✅ **YES** (strict spec compliance) |
+| Tool                  | Requires `.js` in imports?          |
+| --------------------- | ----------------------------------- |
+| Webpack, Vite, Rollup | ❌ No (resolves automatically)      |
+| Node.js ESM           | ✅ **YES** (strict spec compliance) |
 
 ### moduleResolution Options
 
-| Option | Use Case | Requires .js? |
-|--------|----------|---------------|
-| `bundler` | Webpack, Vite, etc. | ❌ |
-| `node16` / `nodenext` | Node.js ESM | ✅ |
-| `node` (legacy) | Node.js CommonJS | ❌ |
+| Option                | Use Case            | Requires .js? |
+| --------------------- | ------------------- | ------------- |
+| `bundler`             | Webpack, Vite, etc. | ❌            |
+| `node16` / `nodenext` | Node.js ESM         | ✅            |
+| `node` (legacy)       | Node.js CommonJS    | ❌            |
 
 ### TypeScript Behavior
 
 With `module: "Node16"` and `moduleResolution: "node16"`:
+
 - TypeScript enforces `.js` extensions in relative imports
 - Compiled `.js` files preserve the `.js` extensions
 - Node.js can resolve imports correctly
@@ -173,4 +190,3 @@ With `module: "Node16"` and `moduleResolution: "node16"`:
 **Status**: ✅ **FIXED** - Ready for deployment
 **Date**: 2025-10-31
 **Impact**: Resolves Dokploy deployment module resolution errors
-

@@ -101,5 +101,6 @@ EXPOSE ${APP_PORT}
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD node -e "require('http').get('http://127.0.0.1:${APP_PORT}/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-# Start the application (dynamically)
-CMD node apps/${APP_NAME}/dist/index.js
+# Start the application (dynamically using pnpm start:prod command)
+# Uses start:prod to skip rebuild in production (code is already built in builder stage)
+CMD ["sh", "-c", "pnpm start:prod:${APP_NAME}"]
