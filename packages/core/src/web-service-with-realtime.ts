@@ -3,8 +3,8 @@ import { createServer, Server as HTTPServer } from 'http';
 import helmet from 'helmet';
 import cors from 'cors';
 import compression from 'compression';
-import { AppConfig, ErrorResponse, RealtimeConfig } from './types';
-import { RealtimeServer } from './service/realtime';
+import { AppConfig, ErrorResponse, RealtimeConfig } from './types/index.js';
+import { RealtimeServer } from './service/realtime.js';
 
 /**
  * Enhanced WebService with WebSocket support

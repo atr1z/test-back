@@ -1,6 +1,6 @@
 import { Server as SocketIOServer } from 'socket.io';
 import { createAdapter } from '@socket.io/redis-adapter';
-import Redis from 'ioredis';
+import { Redis } from 'ioredis';
 import { Server as HTTPServer } from 'http';
 import jwt from 'jsonwebtoken';
 import {
@@ -11,7 +11,7 @@ import {
     Rooms,
     LocationUpdateEvent,
     LocationUpdate,
-} from '../types';
+} from '../types/index.js';
 
 /**
  * WebSocket server with Redis adapter for horizontal scaling
@@ -180,11 +180,11 @@ export class RealtimeServer {
             console.error('[WebSocket] Connection error:', err);
         });
 
-        this.pubClient.on('error', err => {
+        this.pubClient.on('error', (err: Error) => {
             console.error('[Redis Pub] Connection error:', err);
         });
 
-        this.subClient.on('error', err => {
+        this.subClient.on('error', (err: Error) => {
             console.error('[Redis Sub] Connection error:', err);
         });
     }

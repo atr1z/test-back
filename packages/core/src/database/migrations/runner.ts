@@ -1,5 +1,5 @@
 import { resolve } from 'path';
-import { MigrationConfig } from '../types';
+import { MigrationConfig } from '../types.js';
 
 /**
  * Run database migrations using node-pg-migrate

@@ -5,8 +5,8 @@
  * to add live tracking capabilities to your applications.
  */
 
-import { WebServiceWithRealtime, TrackingService } from '../index';
-import { AppConfig, RealtimeConfig } from '../types';
+import { WebServiceWithRealtime, TrackingService } from '../index.js';
+import { AppConfig, RealtimeConfig } from '../types/index.js';
 
 // Example configuration
 const config: AppConfig & { realtime: RealtimeConfig } = {

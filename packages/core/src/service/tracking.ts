@@ -1,6 +1,6 @@
-import Redis from 'ioredis';
+import type { Redis } from 'ioredis';
 import { Server as SocketIOServer } from 'socket.io';
-import { DatabasePool } from '../database';
+import { DatabasePool } from '../database/index.js';
 import {
     LocationUpdate,
     TrackingType,
@@ -9,7 +9,7 @@ import {
     CacheTTL,
     Rooms,
     SocketEvents,
-} from '../types';
+} from '../types/index.js';
 
 /**
  * GPS tracking service for real-time location updates

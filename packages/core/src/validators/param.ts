@@ -2,8 +2,8 @@ import {
     ParamDefinition,
     ValidationResult,
     ParamType,
-} from '../types/validation';
-import { CommonValidators } from './common';
+} from '../types/validation.js';
+import { CommonValidators } from './common.js';
 
 export class ParamValidator {
     /**

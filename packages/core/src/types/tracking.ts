@@ -1,5 +1,5 @@
 import { Server as SocketIOServer } from 'socket.io';
-import Redis from 'ioredis';
+import type { Redis } from 'ioredis';
 
 /**
  * Configuration for the realtime server

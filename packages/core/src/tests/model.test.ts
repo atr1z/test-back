@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { BaseModel } from '../model/model';
+import { BaseModel } from '../model/index.js';
 
 // Test model class that extends BaseModel
 class TestModel extends BaseModel {

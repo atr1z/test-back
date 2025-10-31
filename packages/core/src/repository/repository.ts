@@ -1,10 +1,10 @@
-import { DataSource } from './types';
+import { DataSource } from './types.js';
 import {
     QueryFilters,
     PaginationOptions,
     PaginatedResult,
     RepositoryConfig,
-} from './types';
+} from './types.js';
 
 /**
  * Base Repository class with multi-source data access

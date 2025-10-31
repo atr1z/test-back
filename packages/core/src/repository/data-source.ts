@@ -5,7 +5,7 @@ import {
     QueryFilters,
     PaginationOptions,
     PaginatedResult,
-} from './types';
+} from './types.js';
 
 /**
  * Base data source implementation

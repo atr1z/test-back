@@ -6,8 +6,8 @@ import {
     ParamDefinition,
     ValidatedParams,
     ValidationResult,
-} from '../types';
-import { ParamValidator } from '../validators';
+} from '../types/index.js';
+import { ParamValidator } from '../validators/index.js';
 
 /**
  * Base Controller class that provides common functionality for all endpoints

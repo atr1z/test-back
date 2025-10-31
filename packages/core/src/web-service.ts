@@ -2,7 +2,7 @@ import express, { Application, Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import compression from 'compression';
-import { AppConfig, ErrorResponse } from './types';
+import { AppConfig, ErrorResponse } from './types/index.js';
 
 export class WebService {
     public app: Application;

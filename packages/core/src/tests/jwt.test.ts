@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { JWTService } from '../service/jwt';
-import { JWTPayload, TokenOptions } from '../types';
+import { JWTService } from '../service/jwt.js';
+import { JWTPayload, TokenOptions } from '../types/index.js';
 
 describe('JWTService', () => {
     let jwtService: JWTService;

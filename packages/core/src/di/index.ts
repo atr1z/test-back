@@ -1,3 +1,3 @@
-export * from './container';
-export * from './tokens';
+export * from './container.js';
+export * from './tokens.js';
 export { injectable, singleton, inject, injectAll } from 'tsyringe';

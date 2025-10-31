@@ -1,4 +1,4 @@
-import { ControllerRequest } from '../types';
+import { ControllerRequest } from '../types/index.js';
 
 export interface MockRequestOptions {
     body?: any;

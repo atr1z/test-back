@@ -1,4 +1,4 @@
-import { FileValidationConfig, FileValidationResult } from '../types';
+import { FileValidationConfig, FileValidationResult } from '../types/index.js';
 
 /**
  * File validation service

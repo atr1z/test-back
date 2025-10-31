@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { JWTPayload, TokenOptions } from '../types';
+import { JWTPayload, TokenOptions } from '../types/index.js';
 
 export class JWTService {
     private secret: string;

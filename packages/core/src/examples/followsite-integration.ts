@@ -5,8 +5,8 @@
  * into the Followsite application for live vehicle tracking.
  */
 
-import { WebServiceWithRealtime, TrackingService } from '../index';
-import { AppConfig, RealtimeConfig } from '../types';
+import { WebServiceWithRealtime, TrackingService } from '../index.js';
+import { AppConfig, RealtimeConfig } from '../types/index.js';
 
 // Followsite-specific configuration
 const config: AppConfig & { realtime: RealtimeConfig } = {

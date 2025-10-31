@@ -1,4 +1,4 @@
-import { BaseController, ParamDefinition } from '../../..';
+import { BaseController, ParamDefinition } from '../../../index.js';
 
 export class Register extends BaseController {
     protected override defineParams(): ParamDefinition[] {

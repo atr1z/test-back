@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { loadEnv, getEnv, getEnvAsNumber, getEnvAsBoolean } from './env';
+import { loadEnv, getEnv, getEnvAsNumber, getEnvAsBoolean } from './env.js';
 
 describe('env utilities', () => {
     beforeEach(() => {

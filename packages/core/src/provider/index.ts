@@ -1,3 +1,3 @@
-export * from './minio-provider';
-export * from './storage-provider';
-export * from './s3-provider';
+export * from './minio-provider.js';
+export * from './storage-provider.js';
+export * from './s3-provider.js';

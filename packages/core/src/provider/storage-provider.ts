@@ -1,4 +1,4 @@
-import { UploadOptions, UploadResult } from '../types';
+import { UploadOptions, UploadResult } from '../types/index.js';
 
 /**
  * Storage provider interface
