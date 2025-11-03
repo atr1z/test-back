@@ -3,8 +3,8 @@ import { CorsOptions } from 'cors';
 
 export interface ControllerRequest extends Request {
     user?: {
-        userId: string;
-        email?: string;
+        userId: number;
+        roleId: number;
         [key: string]: any;
     };
 }

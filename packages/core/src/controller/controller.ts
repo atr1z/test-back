@@ -8,18 +8,21 @@ import {
     ValidationResult,
 } from '../types';
 import { ParamValidator } from '../validators';
+import { createChildLogger } from '../utils/logger';
+import { Logger } from 'pino';
 
 /**
  * Base Controller class that provides common functionality for all endpoints
  * Inspired by the abstract Endpoint pattern but more flexible and modular
  */
 export abstract class BaseController<TServices = any> {
-    protected userId?: string;
-    protected userEmail?: string;
+    protected userId?: number;
+    protected roleId?: number;
     protected user?: any;
     protected params: ValidatedParams = {};
     protected urlParams: Record<string, string> = {};
     protected requiresAuth: boolean = true;
+    protected logger: Logger;
 
     constructor(
         protected req: ControllerRequest,
@@ -32,12 +35,23 @@ export abstract class BaseController<TServices = any> {
         // Extract user info from request (set by auth middleware)
         if (this.req.user) {
             this.userId = this.req.user.userId;
-            this.userEmail = this.req.user.email || '';
+            this.roleId = this.req.user.roleId;
             this.user = this.req.user;
         }
 
         // Extract body params
         this.params = this.req.body || {};
+
+        // Initialize logger with request context
+        // Use req.log if available (from http-logger middleware), otherwise create child logger
+        this.logger =
+            req.log ||
+            createChildLogger({
+                controller: this.constructor.name,
+                requestId: req.id,
+                userId: this.userId,
+                path: req.path,
+            });
     }
 
     /**
@@ -210,7 +224,24 @@ export abstract class BaseController<TServices = any> {
      * Error handler
      */
     protected handleError(error: any): Response {
-        console.error('Controller error:', error);
+        // Log error with context using structured logging
+        this.logger.error(
+            {
+                error:
+                    error instanceof Error
+                        ? {
+                              message: error.message,
+                              stack: error.stack,
+                              name: error.name,
+                          }
+                        : error,
+                controller: this.constructor.name,
+                userId: this.userId,
+                path: this.req.path,
+                method: this.req.method,
+            },
+            'Controller error occurred'
+        );
 
         if (error.statusCode && error.message) {
             return this.error(error.message, error.statusCode);

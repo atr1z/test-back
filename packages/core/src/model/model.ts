@@ -1,3 +1,6 @@
+import { createChildLogger } from '../utils/logger';
+import { Logger } from 'pino';
+
 /**
  * Base Model class with common functionality
  * Provides timestamps, serialization, validation, and lifecycle hooks
@@ -35,8 +38,16 @@ export abstract class BaseModel {
     created_at?: Date;
     updated_at?: Date;
 
+    // Logger instance for debugging and tracking model operations
+    protected logger: Logger;
+
     constructor(data: Partial<BaseModel> = {}) {
         Object.assign(this, data);
+
+        // Initialize logger with model context
+        this.logger = createChildLogger({
+            model: this.constructor.name,
+        });
     }
 
     /**

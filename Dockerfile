@@ -3,9 +3,11 @@
 # ===================================
 # APP_NAME: atriz, followsite, or pshop
 # APP_PORT: Port to expose (default: 3001)
-# Updated: 2025-10-30 18:51 - Fixed tsconfig.json caching
+# VERSION: Application version (default: v1)
+# Updated: 2025-11-03 - Added VERSION build argument
 ARG APP_NAME=atriz
 ARG APP_PORT=3001
+ARG VERSION=v1
 
 # ===================================
 # Stage 1: Dependencies
@@ -36,6 +38,7 @@ FROM node:22-alpine AS builder
 
 # Re-declare build args for this stage
 ARG APP_NAME=atriz
+ARG VERSION=v1
 
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
@@ -59,6 +62,7 @@ FROM node:22-alpine AS runner
 # Re-declare build args for this stage
 ARG APP_NAME=atriz
 ARG APP_PORT=3001
+ARG VERSION=v1
 
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
@@ -69,6 +73,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV APP_NAME=${APP_NAME}
 ENV PORT=${APP_PORT}
+ENV VERSION=${VERSION}
 
 # Copy package files
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
@@ -98,8 +103,8 @@ USER atrizuser
 EXPOSE ${APP_PORT}
 
 # Health check (uses PORT env var at runtime, not APP_PORT build arg)
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD node -e "require('http').get('http://127.0.0.1:' + (process.env.PORT || 3001) + '/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+HEALTHCHECK --interval=24h --timeout=10s --start-period=40s --retries=3 \
+  CMD node -e "require('http').get('http://127.0.0.1:' + (process.env.PORT || 3001) + '/'+ (process.env.VERSION || 'v1') + '/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
 # Start the application (directly with node - no turbo needed in production)
 # Code is already built in builder stage
