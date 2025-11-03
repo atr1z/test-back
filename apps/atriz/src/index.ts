@@ -1,18 +1,17 @@
 import 'reflect-metadata';
 import { Request, Response } from 'express';
+import { setupContainer } from './di';
+import routes from './routes';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import {
     WebService,
     loadEnv,
     getEnv,
     getEnvAsNumber,
-    logger,
+    httpLogger,
 } from '@atriz/core';
-import { setupContainer } from './di/index.js';
-import routes from './routes/index.js';
-
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -40,21 +39,25 @@ const webService = new WebService({
     },
 });
 
-// Add custom middleware
-webService.app.use(logger);
+// Add HTTP logger middleware (with request ID correlation)
+webService.app.use(httpLogger);
 
 // Register routes
-webService.app.use('/v1', routes());
+webService.app.use('/' + getEnv('VERSION', 'v1'), routes());
 
-// Health check
-webService.app.get('/health', (_req: Request, res: Response) => {
-    res.json({
-        status: 'ok',
-        service: 'atriz-backend',
-        version,
-        timestamp: new Date().toISOString(),
-    });
-});
+// Health check endpoint
+webService.app.get(
+    '/' + getEnv('VERSION', 'v1') + '/health',
+    (req: Request, res: Response) => {
+        (req as any).log?.info('Health check requested');
+        res.json({
+            status: 'ok',
+            service: 'atriz-backend',
+            version,
+            timestamp: new Date().toISOString(),
+        });
+    }
+);
 
 // Start server
 webService.listen();

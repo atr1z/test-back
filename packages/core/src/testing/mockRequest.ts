@@ -6,8 +6,8 @@ export interface MockRequestOptions {
     query?: Record<string, any>;
     headers?: Record<string, string>;
     user?: {
-        userId: string;
-        email?: string;
+        userId: number;
+        roleId: number;
         [key: string]: any;
     };
     ip?: string;
