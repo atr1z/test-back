@@ -6,7 +6,7 @@
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "scripts": {
-        "build": "tsc",
+        "build": "tsup",
         "dev": "tsx watch src/index.ts",
         "start": "node dist/index.js",
         "start:prod": "node dist/index.js",
@@ -55,6 +55,7 @@
         "globals": "^16.4.0",
         "prettier": "*",
         "supertest": "^7.1.4",
+        "tsup": "^8.3.5",
         "tsx": "^4.20.6",
         "typescript": "*",
         "vitest": "^2.1.9"

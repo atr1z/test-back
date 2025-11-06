@@ -1,2 +1,2 @@
-export * from './containers.js';
-export * from './tokens.js';
+export * from './containers';
+export * from './tokens';
