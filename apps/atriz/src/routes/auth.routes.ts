@@ -9,6 +9,8 @@ const router: ExpressRouter = Router();
 router.post('/sign-in', (req, res) => new SignIn(req, res).handle());
 router.post('/sign-up', (req, res) => new SignUp(req, res).handle());
 router.post('/refresh', (req, res) => new RefreshToken(req, res).handle());
-router.post('/password-recovery', (req, res) => new PasswordRecovery(req, res).handle());
+router.post('/password-recovery', (req, res) =>
+    new PasswordRecovery(req, res).handle()
+);
 
 export default router;

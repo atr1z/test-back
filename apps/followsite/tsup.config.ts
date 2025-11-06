@@ -10,11 +10,7 @@ export default defineConfig({
     treeshake: true,
     outDir: 'dist',
     tsconfig: './tsconfig.build.json',
-    external: [
-        '@atriz/core',
-        'express',
-        'reflect-metadata',
-    ],
+    external: ['@atriz/core', 'express', 'reflect-metadata'],
     // Bundle to resolve ESM imports properly
     bundle: true,
     // Keep decorator metadata and names for DI
@@ -22,4 +18,3 @@ export default defineConfig({
         options.keepNames = true;
     },
 });
-
