@@ -9,6 +9,7 @@ export default defineConfig({
     splitting: false,
     treeshake: true,
     outDir: 'dist',
+    tsconfig: './tsconfig.build.json',
     external: [
         '@atriz/core',
         'express',
