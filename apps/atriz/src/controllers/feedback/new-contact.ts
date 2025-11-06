@@ -1,4 +1,4 @@
-import { BaseController, ParamDefinition } from "@atriz/core";
+import { BaseController, ParamDefinition } from '@atriz/core';
 
 export class NewContact extends BaseController {
     protected override defineParams(): ParamDefinition[] {
