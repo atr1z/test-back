@@ -12,4 +12,3 @@ export * from './provider';
 export * from './database';
 export * from './repository';
 export * from './model';
-export * from './features';

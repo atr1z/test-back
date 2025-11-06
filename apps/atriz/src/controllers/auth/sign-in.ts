@@ -1,6 +1,6 @@
-import { BaseController, ParamDefinition } from '../../..';
+import { BaseController, ParamDefinition } from "@atriz/core";
 
-export class Login extends BaseController {
+export class SignIn extends BaseController {
     protected override setup(): Promise<void> {
         this.requiresAuth = false;
         return Promise.resolve();
@@ -8,16 +8,8 @@ export class Login extends BaseController {
 
     protected override defineParams(): ParamDefinition[] {
         return [
-            {
-                name: 'email',
-                type: 'email',
-                required: true,
-            },
-            {
-                name: 'password',
-                type: 'password',
-                required: true,
-            },
+            { name: 'email', type: 'email', required: true },
+            { name: 'password', type: 'password', required: true }
         ];
     }
     protected override async execute(): Promise<any> {
